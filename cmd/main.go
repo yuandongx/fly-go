@@ -34,15 +34,16 @@ func main() {
 		logger.Fatal("Failed to load config", zap.Error(err))
 	}
 
-	if err := database.Connect(cfg.Database); err != nil {
+	mongoDB, err := database.NewMongoDB(cfg.Database)
+	if err != nil {
 		logger.Fatal("Failed to connect to database", zap.Error(err))
 	}
-	defer database.Disconnect()
+	defer mongoDB.Close()
 
 	gin.SetMode(cfg.Server.Mode)
 	r := gin.New()
 
-	routes.SetupRoutes(r)
+	routes.SetupRoutes(r, mongoDB)
 
 	srv := &http.Server{
 		Addr:    ":" + cfg.Server.Port,
