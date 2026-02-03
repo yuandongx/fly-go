@@ -20,7 +20,7 @@ func InitLogger() error {
 	config.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
 
 	consoleCore := zapcore.NewCore(
-		zapcore.NewJSONEncoder(config.EncoderConfig),
+		zapcore.NewConsoleEncoder(config.EncoderConfig),
 		zapcore.AddSync(os.Stdout),
 		zapcore.InfoLevel,
 	)
