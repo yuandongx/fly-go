@@ -2,7 +2,9 @@ FROM golang:alpine3.23 AS builder
 
 COPY . /app
 
-RUN cd /app && go build -o fly-go app/cmd/main.go
+RUN cd /app;\
+    pwd;\
+    go build -o fly-go app/cmd/main.go
 
 FROM alpine:3.23
 
