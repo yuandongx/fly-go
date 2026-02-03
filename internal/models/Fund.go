@@ -1,6 +1,6 @@
+// Package models provides the data models for the application.
 package models
 
-// Fund 基金
 type Fund struct {
 	BaseModel           `bson:",inline" json:",inline"`
 	Code                string  `bson:"code,omitempty" json:"code,omitempty"`
@@ -25,7 +25,6 @@ type Fund struct {
 	UpdateTime          string  `bson:"update_time,omitempty" json:"update_time,omitempty"`
 }
 
-// FundFollow 基金关注
 type FundFollow struct {
 	Fund      `bson:",inline" json:",inline"`
 	StartTime string `bson:"start_time,omitempty" json:"start_time,omitempty"`

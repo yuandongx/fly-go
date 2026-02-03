@@ -1,6 +1,5 @@
 package models
 
-// Stock 股票
 type Stock struct {
 	BaseModel     `bson:",inline" json:",inline"`
 	Symbol        string  `bson:"symbol,omitempty" json:"symbol,omitempty"`
@@ -28,7 +27,6 @@ type Stock struct {
 	Follow        int     `bson:"follow,omitempty" json:"follow,omitempty"`
 }
 
-// StockFollow 股票关注
 type StockFollow struct {
 	Stock     `bson:",inline" json:",inline"`
 	StartTime string `bson:"start_time,omitempty" json:"start_time,omitempty"`
