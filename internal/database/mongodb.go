@@ -23,6 +23,9 @@ type MongoDB struct {
 	Config Config
 }
 
+type Row = map[string]interface{}
+type Rows = []Row
+
 func NewMongoDB(config Config) (*MongoDB, error) {
 	clientOptions := options.Client().ApplyURI("mongodb://" + config.Host + ":" + config.Port)
 	clientOptions.SetAuth(options.Credential{

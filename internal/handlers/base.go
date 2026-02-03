@@ -1,9 +1,14 @@
 package handlers
 
-import "fly-go/internal/database"
+import (
+	"fly-go/internal/database"
+	"fly-go/internal/utils"
+
+	"github.com/gin-gonic/gin"
+)
 
 type BaseHandler struct {
-	mongoDB *database.MongoDB
+	Mongo *database.MongoDB
 }
 
 type BaseResponse struct {
@@ -12,24 +17,28 @@ type BaseResponse struct {
 	Data interface{} `json:"data"`
 }
 
-type BaseQuery struct {
-	Page    int    `json:"page" form:"page" validate:"required,min=1" default:"1"`
-	Size    int    `json:"size" form:"size" validate:"required,min=1,max=100" default:"10"`
-	Search  string `json:"search" form:"search" validate:"omitempty"`
-	OrderBy string `json:"order_by" form:"order_by" validate:"omitempty"`
-	Order   string `json:"order" form:"order" validate:"omitempty"`
-}
-
-type Query struct {
-	ID string `json:"id" form:"id" validate:"required"`
-}
-
 func NewBaseHandler(mongoDB *database.MongoDB) *BaseHandler {
 	return &BaseHandler{
-		mongoDB: mongoDB,
+		Mongo: mongoDB,
 	}
 }
 
 func (h *BaseHandler) GetMongoDB() *database.MongoDB {
-	return h.mongoDB
+	return h.Mongo
 }
+
+func (h *BaseHandler) DefaultGetListQuery(collection string, c *gin.Context) {
+	query := &utils.BaseQuery{}
+	if err := c.ShouldBindQuery(query); err != nil {
+		utils.Error(c, 400, "参数错误")
+	} else {
+		results := h.Mongo.Find(c.Request.Context(), collection, *query)
+		utils.Success(c, results)
+	}
+}
+
+const collectionFund = "fund"
+const collectionStock = "stock"
+const collectionTask = "task"
+
+// const collectionFollow = "follow"
