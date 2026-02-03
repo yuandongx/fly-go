@@ -12,10 +12,3 @@ type BaseModel struct {
 	CreatedAt time.Time          `json:"created_at,omitempty" bson:"created_at,omitempty"`
 	UpdatedAt time.Time          `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
 }
-
-type User struct {
-	BaseModel `bson:",inline"`
-	Name      string `json:"name" bson:"name"`
-	Email     string `json:"email" bson:"email"`
-	Password  string `json:"-" bson:"password"`
-}
