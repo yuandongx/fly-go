@@ -70,8 +70,8 @@ func Fatal(msg string, fields ...zap.Field) {
 	Log.Fatal(msg, fields...)
 }
 
-func Sync() {
-	Log.Sync()
+func Sync() error {
+	return Log.Sync()
 }
 
 func GetLogger() *zap.Logger {
