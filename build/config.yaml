@@ -1,0 +1,10 @@
+server:
+  port: 8080
+  mode: "debug"
+
+database:
+  host: "120.48.130.105"
+  port: "8717"
+  username: "root"
+  password: "example"
+  database: "flygo"

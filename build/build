@@ -1,0 +1,26 @@
+#!/bin/bash
+set -e
+
+dir=$(dirname $(dirname "$0"))
+
+echo "Current directory: $dir"
+
+echo "Building fly-go..."
+
+version=$(cat $dir/build/build_version)
+
+img_name="dong01/fly-go:$version"
+
+docker build -t $img_name $dir -f $dir/build/Dockerfile
+
+echo "Build completed: $img_name"
+
+next_version=$(echo $version | awk -F. -v OFS=. '{$NF++;print}')
+
+echo "Next version: $next_version"
+
+echo $next_version > $dir/build/build_version
+
+# docker push $img_name
+
+echo "Pushed image: $img_name"

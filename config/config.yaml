@@ -1,0 +1,10 @@
+name: config
+server:
+  port: 8080
+  mode: debug
+database:
+  mongo_host: localhost
+  mongo_port: 27017
+  mongo_username: myuser
+  mongo_password: mypassword
+  mongo_database: mydb

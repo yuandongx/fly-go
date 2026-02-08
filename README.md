@@ -9,7 +9,7 @@ fly-go/
 ├── cmd/
 │   └── api/
 │       └── main.go          # Application entry point
-├── internal/
+├── server/
 │   ├── config/
 │   │   └── config.go        # Configuration management
 │   ├── database/
@@ -60,7 +60,7 @@ database:
   database: "flygo"
 ```
 
-Or use environment variables (see `.env.example`):
+Or use environment variables `FLY_CONFIG` (see `.env.example`):
 
 ```bash
 SERVER_PORT=8080
