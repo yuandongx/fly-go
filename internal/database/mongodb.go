@@ -20,39 +20,48 @@ type Config struct {
 type MongoDB struct {
 	Client *mongo.Client
 	DB     *mongo.Database
-	Config Config
+	config Config
 }
 
 type Row = map[string]interface{}
 type Rows = []Row
 
 func NewMongoDB(config Config) (*MongoDB, error) {
-	clientOptions := options.Client().ApplyURI("mongodb://" + config.Host + ":" + config.Port)
+	mg := &MongoDB{}
+	mg.config = config
+	error := mg.Connect()
+	return mg, error
+}
+func (mg *MongoDB) Connect() error {
+	clientOptions := options.Client().ApplyURI("mongodb://" + mg.config.Host + ":" + mg.config.Port)
 	clientOptions.SetAuth(options.Credential{
-		Username: config.Username,
-		Password: config.Password,
+		Username: mg.config.Username,
+		Password: mg.config.Password,
 	})
 
 	client, err := mongo.Connect(context.Background(), clientOptions)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if err = client.Ping(context.Background(), nil); err != nil {
-		return nil, err
+		return err
 	}
-
-	return &MongoDB{
-		Client: client,
-		DB:     client.Database(config.Database),
-		Config: config,
-	}, nil
+	mg.Client = client
+	mg.DB = client.Database(mg.config.Database)
+	return nil
 }
 
-func (m *MongoDB) Close() error {
-	return m.Client.Disconnect(context.Background())
+func (mg *MongoDB) Close() error {
+	return mg.Client.Disconnect(context.Background())
 }
 
-func (m *MongoDB) Collection(name string) *mongo.Collection {
-	return m.DB.Collection(name)
+func (mg *MongoDB) Collection(name string) *mongo.Collection {
+	ctxt := context.Background()
+	if err := mg.Client.Ping(ctxt, nil); err != nil {
+		if error := mg.Connect(); error != nil {
+			return nil
+		}
+	}
+	return mg.DB.Collection(name)
 }

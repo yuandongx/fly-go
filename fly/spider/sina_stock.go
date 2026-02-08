@@ -2,14 +2,23 @@ package spider
 
 import (
 	"encoding/json"
-	"fly-go/internal/models"
 	"fmt"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
-func GetFundInfo(data interface{}) error {
+var Nodes = map[string]string{"sgt_sz": "sz",
+	"hgt_sh": "sh",
+	"hs_bjs": "bj",
+	"kcb":    "kc",
+	"cyb":    "cy"}
+
+func GetStockInfo() ([]bson.M, error) {
+	var result []bson.M
+	var msg error
 	query := QueryParams{
 		"page":   1,
-		"num":    50,
+		"num":    40,
 		"sort":   "symbol",
 		"asc":    1,
 		"symbol": "",
@@ -23,33 +32,41 @@ func GetFundInfo(data interface{}) error {
 		"Connection":   "keep-alive",
 	}
 	// var rows []models.
-	var count = 0
-	for nodeKey, _ := range Nodes {
-		req := NewRequest(SinaStockCountUrl+nodeKey, "GET", headers, nil, 10)
-		data, err := req.Get()
-		if err != nil {
-			return err
-		}
-		if total, err := CovertInt(data); err != nil {
-			return err
-		} else {
-			count = total
-		}
+	for nodeKey, nodeValue := range Nodes {
+		count := 0
+		req := NewRequest(SinaStockCountURL+nodeKey, "GET", headers, nil, 10)
 
+		if data, err := req.Get(); err != nil {
+			fmt.Printf("%s 查询数量失败！", nodeValue)
+			msg = err
+			continue
+		} else {
+			if total, err := CovertInt(data); err != nil {
+				msg = err
+				continue
+			} else {
+				count = total
+				fmt.Printf("%s 应有 %d 条数据 \n", nodeValue, total)
+			}
+		}
 		for page := 1; page <= (count/50)+1; page++ {
 			query["page"] = page
-			req.SetUrl(SinaStockListUrl + "?" + query.String())
+			query["node"] = nodeKey
+			req.SetURL(SinaStockListURL + "?" + query.String())
 			rows, err := req.Get()
 			if err != nil {
+				msg = err
 				continue
 			}
-			rowList := []models.Stock{}
-			err = json.Unmarshal(rows, &rowList)
+			var tmp []bson.M
+			err = json.Unmarshal(rows, &tmp)
 			if err != nil {
+				msg = err
 				continue
 			}
+			result = append(result, tmp...)
 		}
 	}
-	fmt.Println("Total funds:", count)
-	return nil
+	fmt.Println("Total stocks:", len(result))
+	return result, msg
 }

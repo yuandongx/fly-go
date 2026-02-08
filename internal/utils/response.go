@@ -4,10 +4,7 @@ package utils
 import (
 	"net/http"
 
-	"fly-go/logger"
-
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 type Response struct {
@@ -25,10 +22,6 @@ func Success(c *gin.Context, data interface{}) {
 }
 
 func Error(c *gin.Context, statusCode int, message string) {
-	logger.Error("API Error",
-		zap.String("path", c.Request.URL.Path),
-		zap.String("method", c.Request.Method),
-		zap.String("message", message))
 
 	c.JSON(statusCode, Response{
 		Code:    statusCode,
@@ -37,10 +30,6 @@ func Error(c *gin.Context, statusCode int, message string) {
 }
 
 func ErrorWithData(c *gin.Context, statusCode int, message string, data interface{}) {
-	logger.Error("API Error",
-		zap.String("path", c.Request.URL.Path),
-		zap.String("method", c.Request.Method),
-		zap.String("message", message))
 
 	c.JSON(statusCode, Response{
 		Code:    statusCode,

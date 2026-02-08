@@ -1,79 +1,68 @@
-// Package logger provides the logging functionality for the application.
-package logger
+// Package log provides the logging functionality for the application.
+package log
 
 import (
-	"os"
-	"path/filepath"
-
-	"github.com/natefinch/lumberjack"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+	"fmt"
+	"log"
 )
 
-var Log *zap.Logger
+const (
+	DEBUG = 1 << iota
+	INFO
+	ERROR
+	PANIC
+)
 
-func InitLogger() error {
-	config := zap.NewProductionConfig()
+type Zip struct {
+	Key   string
+	Value interface{}
+}
+type ILogger struct {
+	Level  int
+	Logger *log.Logger
+}
 
-	config.EncoderConfig.TimeKey = "timestamp"
-	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
-	config.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
+func Zap(key string, value interface{}) Zip {
+	return Zip{key, value}
+}
 
-	consoleCore := zapcore.NewCore(
-		zapcore.NewConsoleEncoder(config.EncoderConfig),
-		zapcore.AddSync(os.Stdout),
-		zapcore.InfoLevel,
-	)
+func (z Zip) String() string {
+	return fmt.Sprintf("%s %v", z.Key, z.Value)
+}
 
-	logsDir := "logs"
-	if err := os.MkdirAll(logsDir, 0755); err != nil {
-		return err
+func DefaultLogger() *ILogger {
+	logger := &ILogger{}
+	l := log.Default()
+	l.SetFlags(log.Lshortfile | log.Ldate | log.Ltime)
+	logger.Level = DEBUG
+	logger.Logger = l
+	return logger
+}
+func (l *ILogger) Println(msg string, items ...Zip) {
+	tmp := ""
+	for _, item := range items {
+		tmp += fmt.Sprintf("%s %s, ", item.Key, item.Value)
 	}
-
-	errorFileWriter := &lumberjack.Logger{
-		Filename:   filepath.Join(logsDir, "error.log"),
-		MaxSize:    100,
-		MaxBackups: 3,
-		MaxAge:     30,
-		Compress:   true,
+	tmp += msg
+	l.Logger.Println(tmp)
+}
+func (l *ILogger) Debug(msg string, items ...Zip) {
+	if l.Level >= DEBUG {
+		l.Println(msg, items...)
 	}
-
-	errorCore := zapcore.NewCore(
-		zapcore.NewJSONEncoder(config.EncoderConfig),
-		zapcore.AddSync(errorFileWriter),
-		zapcore.ErrorLevel,
-	)
-
-	core := zapcore.NewTee(consoleCore, errorCore)
-	Log = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
-
-	return nil
 }
-
-func Info(msg string, fields ...zap.Field) {
-	Log.Info(msg, fields...)
+func (l *ILogger) Info(msg string, items ...Zip) {
+	if l.Level >= INFO {
+		l.Println(msg, items...)
+	}
 }
-
-func Error(msg string, fields ...zap.Field) {
-	Log.Error(msg, fields...)
+func (l *ILogger) Error(msg string, items ...Zip) {
+	if l.Level >= ERROR {
+		l.Println(msg, items...)
+	}
 }
-
-func Debug(msg string, fields ...zap.Field) {
-	Log.Debug(msg, fields...)
-}
-
-func Warn(msg string, fields ...zap.Field) {
-	Log.Warn(msg, fields...)
-}
-
-func Fatal(msg string, fields ...zap.Field) {
-	Log.Fatal(msg, fields...)
-}
-
-func Sync() error {
-	return Log.Sync()
-}
-
-func GetLogger() *zap.Logger {
-	return Log
+func (l *ILogger) Panic(msg string, items ...Zip) {
+	if l.Level >= PANIC {
+		l.Println(msg, items...)
+	}
 }
