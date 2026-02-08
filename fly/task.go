@@ -115,6 +115,7 @@ func (t *Task) CanRun() bool {
 
 // Run task
 func (t *Task) Run() error {
+	start := time.Now()
 	res, err := t.Runner.Task.Run()
 	var models []mongo.WriteModel
 	// 结果检查
@@ -143,16 +144,22 @@ func (t *Task) Run() error {
 		t.Logger.Info("MongoDB 连接异常！")
 		return nil
 	}
+
+	// 批量写入
+	msg := ""
 	if _, err := collect.BulkWrite(ctx, models, opts); err != nil {
 		t.Runner.Msg = fmt.Sprintf("%s 更新失败了 %v", t.Runner.Name, err)
 		return err
 	} else {
 		n := len(models)
-		msg := fmt.Sprintf("更新了 %d 条记录", n)
+		msg = fmt.Sprintf("更新了 %d 条记录", n)
 		t.Logger.Info(msg)
-		t.Runner.Msg = msg
-	}
 
+	}
+	end := time.Now()
+	spend := end.Sub(start).Seconds()
+	msg += fmt.Sprintf(" 用时 %10.2fs", spend)
+	t.Runner.Msg = msg
 	return nil
 }
 
