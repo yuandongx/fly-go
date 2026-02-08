@@ -2,6 +2,8 @@ package fly
 
 import (
 	"context"
+
+	"fly-go/fly/runner"
 	"fly-go/internal/config"
 	"fly-go/internal/database"
 	log "fly-go/logger"
@@ -34,9 +36,11 @@ func Init() {
 
 func registerTask(db *database.MongoDB, logger *log.ILogger) {
 	// sina 更新信息
-	stock := NewStock()
-	stockRunner := NewRunner("001", "sina-get_all_stock_info",
-		"新浪更新股票信息", "stock", stock)
+	stock := runner.NewStock()
+	stockRunner := NewRunner("001",
+		"sina-get_all_stock_info",
+		"新浪更新股票信息",
+		"stock", stock)
 	stockTask := NewTask(db, stockRunner, logger)
 	tm.AddTask(*stockTask)
 }

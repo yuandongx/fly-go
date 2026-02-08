@@ -1,5 +1,5 @@
 // Package fly, the spider
-package fly
+package runner
 
 import (
 	"fly-go/fly/spider"

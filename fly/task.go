@@ -33,9 +33,7 @@ type TaskInterface interface {
 	Stop() error
 }
 
-type TaskBase struct {
-	Collection string
-}
+
 
 type Trigger struct {
 	Type        string `json:"type" bson:"type,omitempty"`
