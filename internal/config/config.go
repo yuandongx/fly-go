@@ -28,11 +28,11 @@ func LoadConfig() (*Config, error) {
 
 	viper.SetDefault("server.port", "8080")
 	viper.SetDefault("server.mode", "debug")
-	viper.SetDefault("database.host", "10.26.32.82")
-	viper.SetDefault("database.port", "27017")
+	viper.SetDefault("database.host", "120.48.130.105")
+	viper.SetDefault("database.port", "8717")
 	viper.SetDefault("database.username", "root")
-	viper.SetDefault("database.password", "123456")
-	viper.SetDefault("database.database", "flygo")
+	viper.SetDefault("database.password", "example")
+	viper.SetDefault("database.database", "fly-go")
 
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {

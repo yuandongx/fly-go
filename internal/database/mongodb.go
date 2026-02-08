@@ -20,36 +20,50 @@ type Config struct {
 type MongoDB struct {
 	Client *mongo.Client
 	DB     *mongo.Database
-	Config Config
+	config Config
 }
 
+type Row = map[string]interface{}
+type Rows = []Row
+
 func NewMongoDB(config Config) (*MongoDB, error) {
-	clientOptions := options.Client().ApplyURI("mongodb://" + config.Host + ":" + config.Port)
+	m := &MongoDB{}
+	m.config = config
+	err := m.Connect()
+	return m, err
+}
+
+func (m *MongoDB) Connect() error {
+	clientOptions := options.Client().ApplyURI("mongodb://" + m.config.Host + ":" + m.config.Port)
 	clientOptions.SetAuth(options.Credential{
-		Username: config.Username,
-		Password: config.Password,
+		Username: m.config.Username,
+		Password: m.config.Password,
 	})
 
 	client, err := mongo.Connect(context.Background(), clientOptions)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if err = client.Ping(context.Background(), nil); err != nil {
-		return nil, err
+		return err
 	}
-
-	return &MongoDB{
-		Client: client,
-		DB:     client.Database(config.Database),
-		Config: config,
-	}, nil
+	m.Client = client
+	m.DB = client.Database(m.config.Database)
+	return nil
 }
 
+// Close disconnects the MongoDB client.
 func (m *MongoDB) Close() error {
 	return m.Client.Disconnect(context.Background())
 }
 
 func (m *MongoDB) Collection(name string) *mongo.Collection {
+	ctxt := context.Background()
+	if err := m.Client.Ping(ctxt, nil); err != nil {
+		if err := m.Connect(); err != nil {
+			return nil
+		}
+	}
 	return m.DB.Collection(name)
 }

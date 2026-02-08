@@ -5,13 +5,14 @@ import (
 	"fly-go/internal/database"
 	"fly-go/internal/handlers"
 	"fly-go/internal/middleware"
+	log "fly-go/logger"
 
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRoutes(r *gin.Engine, mongoDB *database.MongoDB) {
-	r.Use(middleware.Logger())
-	r.Use(middleware.Recovery())
+func SetupRoutes(r *gin.Engine, mongoDB *database.MongoDB, logger *log.ILogger) {
+	r.Use(middleware.Logger(logger))
+	r.Use(middleware.Recovery(logger))
 	r.Use(middleware.CORS())
 
 	baseHandler := handlers.NewBaseHandler(mongoDB)
@@ -21,6 +22,9 @@ func SetupRoutes(r *gin.Engine, mongoDB *database.MongoDB) {
 		v1 := api.Group("/v1")
 		{
 			v1.GET("/health", baseHandler.Check)
+			v1.GET("/stock/list", baseHandler.GetStockList)
+			v1.GET("/fund/list", baseHandler.GetFundList)
+			v1.GET("/task/list", baseHandler.GetTaskList)
 		}
 	}
 }

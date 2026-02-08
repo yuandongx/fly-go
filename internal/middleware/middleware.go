@@ -4,13 +4,12 @@ package middleware
 import (
 	"time"
 
-	"fly-go/logger"
-
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
+
+	log "fly-go/logger"
 )
 
-func Logger() gin.HandlerFunc {
+func Logger(logger *log.ILogger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 		path := c.Request.URL.Path
@@ -22,23 +21,23 @@ func Logger() gin.HandlerFunc {
 		statusCode := c.Writer.Status()
 
 		logger.Info("HTTP Request",
-			zap.String("method", method),
-			zap.String("path", path),
-			zap.Int("status", statusCode),
-			zap.Duration("latency", latency),
-			zap.String("client_ip", c.ClientIP()),
+			log.Zap("method", method),
+			log.Zap("path", path),
+			log.Zap("status", statusCode),
+			log.Zap("latency", latency),
+			log.Zap("client_ip", c.ClientIP()),
 		)
 	}
 }
 
-func Recovery() gin.HandlerFunc {
+func Recovery(logger *log.ILogger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if err := recover(); err != nil {
 				logger.Error("Panic recovered",
-					zap.String("path", c.Request.URL.Path),
-					zap.String("method", c.Request.Method),
-					zap.Any("error", err),
+					log.Zap("path", c.Request.URL.Path),
+					log.Zap("method", c.Request.Method),
+					log.Zap("error", err),
 				)
 				c.JSON(500, gin.H{
 					"code":    500,

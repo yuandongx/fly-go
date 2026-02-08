@@ -3,8 +3,8 @@ server:
   mode: "debug"
 
 database:
-  host: "10.26.32.82"
-  port: "27017"
+  host: "120.48.130.105"
+  port: "8717"
   username: "root"
-  password: "123456"
+  password: "example"
   database: "flygo"
