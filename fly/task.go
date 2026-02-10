@@ -33,18 +33,6 @@ type TaskInterface interface {
 	Stop() error
 }
 
-
-
-type Trigger struct {
-	Type        string `json:"type" bson:"type,omitempty"`
-	Interval    int64  `json:"interval" bson:"interval,omitempty"`
-	Enabled     bool   `json:"enabled" bson:"enabled,omitempty"`
-	StartAtDate int64  `json:"start_at" bson:"start_at,omitempty"`
-	EndAtDate   int64  `json:"end_at" bson:"end_at,omitempty"`
-	StartTime   int64  `json:"start_time" bson:"start_time,omitempty"`
-	EndTime     int64  `json:"end_time" bson:"end_time,omitempty"`
-}
-
 type Runner struct {
 	ID          string  `json:"id" bson:"id,omitempty"`
 	Name        string  `json:"name" bson:"name,omitempty"`
@@ -94,26 +82,17 @@ func NewTaskManager() *TaskManager {
 	}
 }
 
-// CanRun returns true if the trigger is enabled and the current time is greater than or equal to the next runtime.
-func (t *Task) CanRun() bool {
-	// if t.Runner.Trigger.Enabled {
-	// 	currentTime := time.Now().Unix()
-	// 	diff := int64(math.Abs(float64(currentTime - t.Runner.NextRuntime)))
-	// 	if diff*2 < t.Runner.Trigger.Interval {
-	// 		// Update last runtime and next runtime before running the task
-	// 		t.Runner.LastRuntime = currentTime
-	// 		t.Runner.NextRuntime = currentTime + t.Runner.Trigger.Interval
-	// 		return true
-	// 	}
-	// }
-	// return false
-
-	return true
+// TimeIsUp returns true if the trigger is enabled and the current time is greater than or equal to the next runtime.
+func (t *Task) TimeIsUp() bool {
+	return t.Runner.Trigger.TimeIsUp()
 }
 
 // Run task
 func (t *Task) Run() error {
 	start := time.Now()
+	t.Logger.Info("任务开始执行",
+		log.Zap("id", t.Runner.ID),
+		log.Zap("name", t.Runner.Name))
 	res, err := t.Runner.Task.Run()
 	var models []mongo.WriteModel
 	// 结果检查
@@ -168,7 +147,7 @@ func (t *Task) Update() {
 
 	// Update last runtime and next runtime
 	t.Runner.LastRuntime = time.Now().Unix()
-	t.Runner.NextRuntime = t.Runner.LastRuntime + t.Runner.Trigger.Interval
+	t.Runner.NextRuntime = t.Runner.Trigger.NextRunTime.Unix()
 	update := bson.D{{Key: "$set", Value: t.Runner}}
 	opts := options.Update()
 	opts.SetUpsert(true)

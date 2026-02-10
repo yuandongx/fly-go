@@ -41,6 +41,11 @@ func registerTask(db *database.MongoDB, logger *log.ILogger) {
 		"sina-get_all_stock_info",
 		"新浪更新股票信息",
 		"stock", stock)
+	stockRunner.Trigger = *NewTrigger(Interval)
+	stockRunner.Trigger.SetPeriod(10)
+	stockRunner.Trigger.SetWeekDays([]int{1, 2, 3, 4, 5})
+	stockRunner.Trigger.SetRangeTime("09:25", "11:30")
+	stockRunner.Trigger.SetRangeTime("13:00", "13:00")
 	stockTask := NewTask(db, stockRunner, logger)
 	tm.AddTask(*stockTask)
 }

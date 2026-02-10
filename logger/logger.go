@@ -27,7 +27,7 @@ func Zap(key string, value interface{}) Zip {
 }
 
 func (z Zip) String() string {
-	return fmt.Sprintf("%s %v", z.Key, z.Value)
+	return fmt.Sprintf("%s=%v", z.Key, z.Value)
 }
 
 func DefaultLogger() *ILogger {

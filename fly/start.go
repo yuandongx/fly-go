@@ -11,7 +11,7 @@ func Start() {
 		for _, t := range tm.TM {
 			// go func(t Task) {
 			// Check if the task can run before executing
-			ok := t.CanRun()
+			ok := t.TimeIsUp()
 			if !ok {
 				return
 			}
