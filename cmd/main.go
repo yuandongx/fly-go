@@ -18,7 +18,7 @@ func main() {
 		fmt.Println("Spider is starting...")
 	case "server":
 		fmt.Println("Server is starting...")
-		Server()
+		Server(*port)
 		fmt.Printf("Server is running with port %d ...\n", *port)
 	default:
 		fmt.Println("Only `spider` or `server` can be selected.")

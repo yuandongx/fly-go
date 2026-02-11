@@ -4,6 +4,7 @@ package main
 // main function
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -18,7 +19,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Server() {
+func Server(port int) {
 	logger := log.DefaultLogger()
 
 	logger.Info("Starting application...")
@@ -40,7 +41,7 @@ func Server() {
 	routes.SetupRoutes(r, mongoDB, logger)
 
 	srv := &http.Server{
-		Addr:    ":" + cfg.Server.Port,
+		Addr:    fmt.Sprintf(":%d", port),
 		Handler: r,
 	}
 
