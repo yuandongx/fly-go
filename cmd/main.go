@@ -3,6 +3,7 @@ package main
 
 import (
 	"flag"
+	"fly-go/fly"
 	"fmt"
 )
 
@@ -15,11 +16,17 @@ func main() {
 	flag.Parse()
 	switch *app {
 	case "spider":
-		fmt.Println("Spider is starting...")
+		{
+			fly.Start()
+			fmt.Println("Spider is starting...")
+		}
 	case "server":
-		fmt.Println("Server is starting...")
-		Server(*port)
-		fmt.Printf("Server is running with port %d ...\n", *port)
+		{
+
+			fmt.Println("Server is starting...")
+			Server(*port)
+			fmt.Printf("Server is running with port %d ...\n", *port)
+		}
 	default:
 		fmt.Println("Only `spider` or `server` can be selected.")
 	}
