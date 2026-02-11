@@ -9,9 +9,6 @@ RUN cd /app;\
 # 基础镜像：最新版Alpine
 FROM alpine:latest
 
-# Copy built binary to /usr/local/bin
-COPY --from=builder /app/fly-go /usr/local/bin/fly-go
-
 # 更新源并安装依赖（supervisord + 示例程序：nginx、openssh-server）
 # nginx \
 # openssh-server \
@@ -20,7 +17,10 @@ RUN apk update && apk add --no-cache supervisor \
     && mkdir -p /etc/supervisor/conf.d /var/log/supervisor
 
 # 复制Supervisord主配置文件到容器
-COPY ./build/supervisord.conf /etc/supervisor/supervisord.conf
+COPY ./conf/supervisord.conf /etc/supervisor/supervisord.conf
+# Copy built binary to /usr/local/bin
+COPY --from=builder /app/fly-go /usr/local/bin/fly-go
+
 
 # 暴露端口（根据程序调整：80=nginx，22=sshd）
 EXPOSE 8000
