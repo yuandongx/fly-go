@@ -1,4 +1,4 @@
-FROM golang:alpine3.23 AS builder
+FROM golang:latest AS builder
 
 COPY . /app
 
@@ -6,21 +6,24 @@ RUN cd /app;\
     pwd;\
     go build -o fly-go /app/cmd/main.go
 
-FROM alpine:3.23
+# 基础镜像：最新版Alpine
+FROM alpine:latest
 
 # Copy built binary to /usr/local/bin
 COPY --from=builder /app/fly-go /usr/local/bin/fly-go
 
-# Copy systemd unit template and render ExecStart to /etc/systemd/system
-COPY build/fly-go.service.template /etc/systemd/system/fly-go.service.template
+# 更新源并安装依赖（supervisord + 示例程序：nginx、openssh-server）
+# nginx \
+# openssh-server \
+RUN apk update && apk add --no-cache supervisor \
+    && rm -rf /var/cache/apk/* \
+    && mkdir -p /etc/supervisor/conf.d /var/log/supervisor
 
-RUN chmod +x /usr/local/bin/fly-go \
- && sed "s|@@EXEC_PATH@@|/usr/local/bin/fly-go|g" /etc/systemd/system/fly-go.service.template > /etc/systemd/system/fly-go.service \
- && mkdir -p /etc/systemd/system/multi-user.target.wants \
- && ln -sf /etc/systemd/system/fly-go.service /etc/systemd/system/multi-user.target.wants/fly-go.service
+# 复制Supervisord主配置文件到容器
+COPY build/supervisord.conf /etc/supervisor/supervisord.conf
 
-# Note: To run systemd inside this container you must use a systemd-enabled base image
-# and start the container with appropriate privileges (eg. --privileged) and PID 1 as /sbin/init.
-# This Dockerfile only installs the unit and binary so the service can be enabled if systemd runs.
+# 暴露端口（根据程序调整：80=nginx，22=sshd）
+EXPOSE 8000
 
-ENTRYPOINT ["/usr/local/bin/fly-go"]
+# 启动Supervisord（前台运行，作为容器主进程）
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
