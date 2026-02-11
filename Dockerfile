@@ -4,7 +4,7 @@ COPY . /app
 
 RUN cd /app;\
     pwd;\
-    go build -o fly-go /app/cmd/main.go
+    go build -o fly-go /app/cmd
 
 # 基础镜像：最新版Alpine
 FROM alpine:latest
