@@ -20,7 +20,7 @@ RUN apk update && apk add --no-cache supervisor \
     && mkdir -p /etc/supervisor/conf.d /var/log/supervisor
 
 # 复制Supervisord主配置文件到容器
-COPY build/supervisord.conf /etc/supervisor/supervisord.conf
+COPY /app/build/supervisord.conf /etc/supervisor/supervisord.conf
 
 # 暴露端口（根据程序调整：80=nginx，22=sshd）
 EXPOSE 8000
