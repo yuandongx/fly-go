@@ -1,4 +1,4 @@
-FROM golang:latest AS builder
+FROM golang:1.26-alpine AS builder
 
 COPY . /app
 
@@ -7,7 +7,7 @@ RUN cd /app;\
     go build -o fly-go /app/cmd
 
 # 基础镜像：最新版Alpine
-FROM alpine:latest
+FROM alpine:3.23
 
 # 更新源并安装依赖（supervisord + 示例程序：nginx、openssh-server）
 # nginx \
