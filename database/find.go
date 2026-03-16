@@ -8,10 +8,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func (m *MongoDB) Find(ctx context.Context, collectionName string, query utils.BaseQuery) Rows {
+func (m *MongoDB) Find(ctx context.Context, collectionName string, query utils.BaseQuery) (int, Rows) {
 	collection, err := m.Collection(collectionName)
+	total := 0
 	if err != nil {
-		return nil
+		return total, nil
 	}
 	filter := map[string]interface{}{}
 	if query.Search != "" {
@@ -25,16 +26,20 @@ func (m *MongoDB) Find(ctx context.Context, collectionName string, query utils.B
 		opts.SetSkip(int64((query.Page - 1) * query.Size))
 		opts.SetLimit(int64(query.Size))
 	}
+	_count, err := collection.CountDocuments(ctx, filter)
+	if err == nil {
+		total = int(_count)
+	}
 	cur, err := collection.Find(ctx, filter, opts)
 	if err != nil {
-		return nil
+		return total, nil
 	}
 	results := Rows{}
 	err = cur.All(ctx, &results)
 	if err != nil {
-		return nil
+		return total, nil
 	}
-	return results
+	return total, results
 }
 
 func (m *MongoDB) FindOne(ctx context.Context, collectionName string, filter interface{}, opts ...*options.FindOneOptions) *mongo.SingleResult {

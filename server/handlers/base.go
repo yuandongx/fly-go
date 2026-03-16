@@ -40,8 +40,8 @@ func (h *BaseHandler) DefaultGetListQuery(collection string, c *gin.Context) {
 	if err := c.ShouldBindQuery(query); err != nil {
 		utils.Error(c, 400, "参数错误")
 	} else {
-		results := h.Mongo.Find(c.Request.Context(), collection, *query)
-		utils.Success(c, results)
+		total, results := h.Mongo.Find(c.Request.Context(), collection, *query)
+		utils.Success(c, gin.H{"total": total, "data": results})
 	}
 }
 func (h *BaseHandler) Insert(obj interface{}) error {
