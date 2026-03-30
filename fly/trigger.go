@@ -106,6 +106,8 @@ func NewTrigger(t int) *Trigger {
 }
 
 func (tg *Trigger) Refresh() {
+	tg.local = time.FixedZone("utc+8", 8*3600)
+
 	tg.SetSatrtDate(tg.StartAtDate)
 
 	tg.SetEndDate(tg.EndAtDate)

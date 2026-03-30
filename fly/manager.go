@@ -11,6 +11,9 @@ import (
 	"go.uber.org/zap"
 )
 
+// 同时可以有MAX_WAIT个等待任务
+const MAX_WAIT = 3
+
 type TaskManager struct {
 	TM         map[string]Runner
 	Count      int
@@ -85,6 +88,7 @@ func (tm *TaskManager) LoadTask() error {
 			taskRunner.Task = tif
 			taskRunner.DB = tm.DB
 			taskRunner.Logger = tm.Logger
+			taskRunner.Trigger.Refresh() // 刷新时间状态
 			tm.AddTask(taskRunner)
 			tm.Logger.Info("Task loaded", zap.String("id", taskID), zap.String("name", taskRunner.Name))
 		}
@@ -122,7 +126,7 @@ func (tm *TaskManager) DumpDefaultTask() error {
 		Collection:    tm.Collection,
 		InterfaceName: "default_task",
 		Trigger: Trigger{
-			Period:      1,
+			Period:      5,
 			StartTime:   "00:00",
 			EndTime:     "23:59",
 			Weekdays:    []time.Weekday{0, 1, 2, 3, 4, 5, 6},
@@ -144,9 +148,14 @@ func (tm *TaskManager) DumpDefaultTask() error {
 }
 
 func (tm *TaskManager) RunAllTask() {
-	for _, r := range tm.TM {
+	flags := make(map[string]int)
+	for s, r := range tm.TM {
+		i, ok := flags[s]
+		if ok && i > MAX_WAIT {
+			continue
+		}
 		go func(runner Runner) {
-
+			flags[s] = flags[s] + 1
 			// Check if the task can run before executing
 			tm.Logger.Info(fmt.Sprintf("Checking task: %s", runner.Name))
 			ok := runner.TimeIsUp()
@@ -183,6 +192,7 @@ func (tm *TaskManager) RunAllTask() {
 			result.SpendTime = result.EndTime.Sub(result.StartTime).Seconds()
 			runner.Results = append(runner.Results, result)
 			runner.Update()
+			flags[s] = flags[s] - 1
 		}(r)
 	}
 }
