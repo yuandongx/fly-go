@@ -16,7 +16,7 @@ func SetupRoutes(r *gin.Engine, mongoDB *database.MongoDB, logger *log.ILogger) 
 	r.Use(middleware.CORS())
 
 	baseHandler := handlers.NewBaseHandler("default", mongoDB)
-	taskHandler := handlers.NewBaseHandler("task", mongoDB)
+	taskHandler := handlers.NewBaseHandler("tasks", mongoDB)
 	stockHandler := handlers.NewBaseHandler("stock", mongoDB)
 	fundHandler := handlers.NewBaseHandler("fund", mongoDB)
 
