@@ -19,6 +19,7 @@ func SetupRoutes(r *gin.Engine, mongoDB *database.MongoDB, logger *log.ILogger) 
 	taskHandler := handlers.NewBaseHandler("tasks", mongoDB)
 	stockHandler := handlers.NewBaseHandler("stock", mongoDB)
 	fundHandler := handlers.NewBaseHandler("fund", mongoDB)
+	montitoHandler := handlers.NewBaseHandler("monitor", mongoDB)
 
 	api := r.Group("/api")
 	{
@@ -35,6 +36,10 @@ func SetupRoutes(r *gin.Engine, mongoDB *database.MongoDB, logger *log.ILogger) 
 			v1.POST("/task", taskHandler.PostTask)
 			v1.PUT("/task/:id", taskHandler.UpdateTask)
 			v1.DELETE("/task/:id", taskHandler.DeleteTask)
+
+			// Monitor routes
+			v1.GET("/monitor", montitoHandler.GetMonitorList)
+
 		}
 	}
 }
