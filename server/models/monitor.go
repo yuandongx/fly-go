@@ -9,6 +9,7 @@ type NoticeConfig struct {
 type Monitor struct {
 	BaseModel     `bson:",inline" json:",inline"`
 	Code          string         `bson:"code,omitempty" json:"code,omitempty"`
+	Id            string         `bson:"id,omitempty" json:"id,omitempty"`
 	Name          string         `bson:"name,omitempty" json:"name,omitempty"`
 	StartDate     string         `bson:"start_date,omitempty" json:"start_date,omitempty"`
 	StartPrice    float64        `bson:"start_price,omitempty" json:"start_price,omitempty"`

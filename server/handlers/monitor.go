@@ -20,6 +20,6 @@ func (h *BaseHandler) PostMonitor(c *gin.Context) {
 	utils.Success(c, "OK")
 }
 
-func (h *BaseHandler)GetMonitor(c *gin.Context) {
-	
+func (h *BaseHandler) GetMonitor(c *gin.Context) {
+	h.DefaultGetListQuery(h.collection, c)
 }

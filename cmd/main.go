@@ -11,7 +11,7 @@ import (
 // main function
 
 var mode = flag.String("mode", "server", "Select spider|server to run it.")
-var port = flag.Int("port", 8000, "Set the port when run server.")
+var port = flag.Int("port", 8080, "Set the port when run server.")
 
 // main 是应用程序的入口点，根据命令行参数启动不同的服务模式
 // 支持两种模式：

@@ -42,9 +42,10 @@ func (h *BaseHandler) DefaultGetListQuery(collection string, c *gin.Context) {
 		utils.Error(c, 400, "参数错误")
 	} else {
 		total, results := h.Mongo.Find(c.Request.Context(), collection, *query)
-		utils.Success(c, gin.H{"total": total, "data": results})
+		utils.Success(c, gin.H{"total": total, "items": results})
 	}
 }
+
 // Insert 向数据库集合中插入一个文档
 func (h *BaseHandler) Insert(obj interface{}) error {
 	_, err := h.Mongo.InsertOne(context.Background(), h.collection, obj)
@@ -55,6 +56,7 @@ func (h *BaseHandler) Insert(obj interface{}) error {
 // 参数:
 //   - id: 文档ID
 //   - obj: 要更新的对象
+//
 // 返回:
 //   - error: 更新失败时返回错误
 func (h *BaseHandler) UpdateByID(id string, obj interface{}) error {

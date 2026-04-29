@@ -39,6 +39,7 @@ func SetupRoutes(r *gin.Engine, mongoDB *database.MongoDB, logger *log.ILogger) 
 
 			// Monitor routes
 			v1.POST("/monitor", montitoHandler.PostMonitor)
+			v1.GET("/monitor", montitoHandler.GetMonitor)
 
 		}
 	}
