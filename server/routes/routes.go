@@ -38,7 +38,7 @@ func SetupRoutes(r *gin.Engine, mongoDB *database.MongoDB, logger *log.ILogger) 
 			v1.DELETE("/task/:id", taskHandler.DeleteTask)
 
 			// Monitor routes
-			v1.GET("/monitor", montitoHandler.GetMonitorList)
+			v1.POST("/monitor", montitoHandler.PostMonitor)
 
 		}
 	}

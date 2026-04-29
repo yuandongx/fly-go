@@ -18,8 +18,8 @@ services:
   #     - app-network
 
   server:
-    image: alpine:3.23
-    command: ["/app/fly-go", "--mode", "server"]
+    image: dong01/fly-go:v0.0.8
+    command: [ "server"]
     depends_on:
       - mongo
     environment:

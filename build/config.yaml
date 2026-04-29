@@ -1,10 +1,12 @@
+
+name: config
 server:
-  port: 8080
-  mode: "debug"
+  port: 8000
+  mode: debug
 
 database:
-  host: "120.48.130.105"
-  port: "8717"
-  username: "root"
-  password: "example"
-  database: "flygo"
+  mongo_host: mongo
+  mongo_port: 27017
+  mongo_username: root
+  mongo_password: example
+  mongo_database: fly-go

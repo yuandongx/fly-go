@@ -35,6 +35,7 @@ func (h *BaseHandler) GetMongoDB() *database.MongoDB {
 	return h.Mongo
 }
 
+// DefaultGetListQuery 处理默认的列表查询请求，从指定集合中查询数据并返回分页结果
 func (h *BaseHandler) DefaultGetListQuery(collection string, c *gin.Context) {
 	query := &utils.BaseQuery{}
 	if err := c.ShouldBindQuery(query); err != nil {
@@ -44,11 +45,18 @@ func (h *BaseHandler) DefaultGetListQuery(collection string, c *gin.Context) {
 		utils.Success(c, gin.H{"total": total, "data": results})
 	}
 }
+// Insert 向数据库集合中插入一个文档
 func (h *BaseHandler) Insert(obj interface{}) error {
 	_, err := h.Mongo.InsertOne(context.Background(), h.collection, obj)
 	return err
 }
 
+// UpdateByID 根据ID更新文档
+// 参数:
+//   - id: 文档ID
+//   - obj: 要更新的对象
+// 返回:
+//   - error: 更新失败时返回错误
 func (h *BaseHandler) UpdateByID(id string, obj interface{}) error {
 
 	objectID, err := primitive.ObjectIDFromHex(id)

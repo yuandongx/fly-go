@@ -19,6 +19,8 @@ COPY --from=builder /app/fly-go /usr/local/bin/fly-go
 
 COPY build/entry-point.sh /entry-point.sh
 
+COPY config.yaml /app/config.yaml
+
 RUN chmod +x /entry-point.sh
 
 # 暴露端口（根据程序调整：80=nginx，22=sshd）

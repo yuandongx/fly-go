@@ -1,7 +1,14 @@
 package handlers
 
-func (h *BaseHandler)PostMonitor(c *gin.Context) {
-	m := models.Monitor()
+import (
+	"fly-go/server/models"
+	"fly-go/server/utils"
+
+	"github.com/gin-gonic/gin"
+)
+
+func (h *BaseHandler) PostMonitor(c *gin.Context) {
+	m := &models.Monitor{}
 	if err := c.ShouldBindJSON(m); err != nil {
 		utils.Error(c, 400, "参数错误")
 		return
@@ -11,4 +18,8 @@ func (h *BaseHandler)PostMonitor(c *gin.Context) {
 		return
 	}
 	utils.Success(c, "OK")
+}
+
+func (h *BaseHandler)GetMonitor(c *gin.Context) {
+	
 }
