@@ -1,32 +1,34 @@
 package handlers
 
 import (
-	"fly-go/server/utils"
-
-	"github.com/gin-gonic/gin"
+	"fly-go/database"
 )
 
-func (h *BaseHandler) GetStockList(c *gin.Context) {
-	h.DefaultGetListQuery(h.collection, c)
+// StockResource 股票资源处理器
+type StockResource struct {
+	*BaseHandler
+	collection string
 }
 
-func (h *BaseHandler) GetStockDetail(c *gin.Context) {
-	query := utils.Query{}
-	if err := c.ShouldBindQuery(&query); err != nil {
-		utils.Error(c, 400, "参数错误")
-		return
+func NewStockResource(db *database.MongoDB) *StockResource {
+	return &StockResource{
+		BaseHandler: NewBaseHandler(db),
+		collection:  "stock",
 	}
-	utils.Success(c, nil)
 }
 
-func (h *BaseHandler) CreateStock(c *gin.Context) {
-	utils.Success(c, nil)
+func (r *StockResource) Name() string {
+	return "stock"
 }
 
-func (h *BaseHandler) UpdateStock(c *gin.Context) {
-	utils.Success(c, nil)
+func (r *StockResource) Routes() []RouteConfig {
+	return []RouteConfig{
+		{MethodGet, "", r.List(r.collection), "获取股票列表"},
+	}
 }
 
-func (h *BaseHandler) DeleteStock(c *gin.Context) {
-	utils.Success(c, nil)
+func (r *StockResource) CustomRoutes() []RouteConfig {
+	return []RouteConfig{
+		{MethodGet, "/:id", r.GetByID(r.collection), "获取股票详情"},
+	}
 }

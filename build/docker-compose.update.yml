@@ -17,20 +17,20 @@ services:
   #   networks:
   #     - app-network
 
-  server:
-    image: dong01/fly-go:v0.0.8
-    command: [ "server"]
-    depends_on:
-      - mongo
-    environment:
-      - TZ=Asia/Shanghai
-      - FLY_CONFIG=/app/config.yaml
-    volumes:
-      - /home/develop/data/worker:/app:rw
-    ports:
-      - "8000:8000"
-    networks:
-      - app-network
+  # server:
+  #   image: dong01/fly-go:v0.0.8
+  #   command: [ "server"]
+  #   depends_on:
+  #     - mongo
+  #   environment:
+  #     - TZ=Asia/Shanghai
+  #     - FLY_CONFIG=/app/config.yaml
+  #   volumes:
+  #     - /home/develop/data/worker:/app:rw
+  #   ports:
+  #     - "8000:8000"
+  #   networks:
+  #     - app-network
  
 
   # worker:

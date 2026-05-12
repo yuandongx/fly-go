@@ -1,48 +1,48 @@
-# version: '3.8'
+version: '3.8'
 
 services:
 
-  web:
-    image: nginx:latest
-    volumes:
-      - /home/develop/data/web/nginx.conf:/etc/nginx/nginx.conf:ro
-      - /home/develop/data/web/dist:/app/dist:ro
-    command: [nginx-debug, '-g', 'daemon off;']
-    ports:
-      - "80:80"
-    networks:
-      - app-network
+  # web:
+  #   image: nginx:latest
+  #   volumes:
+  #     - /home/develop/data/web/nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - /home/develop/data/web/dist:/app/dist:ro
+  #   command: [nginx-debug, '-g', 'daemon off;']
+  #   ports:
+  #     - "80:80"
+  #   networks:
+  #     - app-network
 
-  server:
-    image: alpine:3.23
-    command: ["/app/fly-go", "--mode", "server"]
-    depends_on:
-      - mongo
-    environment:
-      - TZ=Asia/Shanghai
-      - FLY_CONFIG=/app/config.yaml
-    volumes:
-      - /home/develop/data/worker:/app:rw
-    ports:
-      - "8000:8000"
-    networks:
-      - app-network
+  # server:
+  #   image: alpine:3.23
+  #   command: ["/app/fly-go", "--mode", "server"]
+  #   depends_on:
+  #     - mongo
+  #   environment:
+  #     - TZ=Asia/Shanghai
+  #     - FLY_CONFIG=/app/config.yaml
+  #   volumes:
+  #     - /home/develop/data/worker:/app:rw
+  #   ports:
+  #     - "8000:8000"
+  #   networks:
+  #     - app-network
  
 
-  worker:
-    image: golang:1.26-alpine3.23
-    command: ["sh", "-c", "tail -f /dev/null"]
-    depends_on:
-      - mongo
-    environment:
-      - TZ=Asia/Shanghai
-      - GOPROXY=https://goproxy.cn,direct
-      - GO111MODULE=on
-    volumes:
-      - /home/develop/data/worker:/app:rw
-      - /home/develop/workspace/fly-go/:/go/src/fly-go:rw
-    networks:
-      - app-network
+  # worker:
+  #   image: golang:1.26-alpine3.23
+  #   command: ["sh", "-c", "tail -f /dev/null"]
+  #   depends_on:
+  #     - mongo
+  #   environment:
+  #     - TZ=Asia/Shanghai
+  #     - GOPROXY=https://goproxy.cn,direct
+  #     - GO111MODULE=on
+  #   volumes:
+  #     - /home/develop/data/worker:/app:rw
+  #     - /home/develop/workspace/fly-go/:/go/src/fly-go:rw
+  #   networks:
+  #     - app-network
 
   mongo:
     image: mongo
@@ -76,4 +76,4 @@ networks:
     driver: overlay
     attachable: true
     name: app_network
-    external: true
+    # external: true

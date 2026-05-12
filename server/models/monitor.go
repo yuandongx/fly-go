@@ -1,6 +1,7 @@
 package models
 
 type NoticeConfig struct {
+	Id          string `bson:"id,omitempty" json:"id,omitempty"`
 	NoticeType  string `bson:"notice_type,omitempty" json:"notice_type,omitempty"`
 	NoticeUnit  string `bson:"notice_unit,omitempty" json:"notice_unit,omitempty"`
 	NoticeValue int    `bson:"notice_value,omitempty" json:"notice_value,omitempty"`

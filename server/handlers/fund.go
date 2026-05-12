@@ -1,33 +1,34 @@
 package handlers
 
 import (
-	"fly-go/server/utils"
-
-	"github.com/gin-gonic/gin"
+	"fly-go/database"
 )
 
-func (h *BaseHandler) GetFundList(c *gin.Context) {
-	// get fund list from mongoDB
-	h.DefaultGetListQuery(h.collection, c)
+// FundResource 基金资源处理器
+type FundResource struct {
+	*BaseHandler
+	collection string
 }
 
-func (h *BaseHandler) GetFundDetail(c *gin.Context) {
-	var query utils.Query
-	if err := c.ShouldBindQuery(&query); err != nil {
-		utils.Error(c, 400, "参数错误")
-		return
+func NewFundResource(db *database.MongoDB) *FundResource {
+	return &FundResource{
+		BaseHandler: NewBaseHandler(db),
+		collection:  "fund",
 	}
-	utils.Success(c, nil)
 }
 
-func (h *BaseHandler) CreateFund(c *gin.Context) {
-	utils.Success(c, nil)
+func (r *FundResource) Name() string {
+	return "fund"
 }
 
-func (h *BaseHandler) UpdateFund(c *gin.Context) {
-	utils.Success(c, nil)
+func (r *FundResource) Routes() []RouteConfig {
+	return []RouteConfig{
+		{MethodGet, "", r.List(r.collection), "获取基金列表"},
+	}
 }
 
-func (h *BaseHandler) DeleteFund(c *gin.Context) {
-	utils.Success(c, nil)
+func (r *FundResource) CustomRoutes() []RouteConfig {
+	return []RouteConfig{
+		{MethodGet, "/:id", r.GetByID(r.collection), "获取基金详情"},
+	}
 }

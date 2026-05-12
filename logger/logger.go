@@ -197,3 +197,8 @@ func (l *ILogger) With(fields ...zap.Field) *ILogger {
 func (l *ILogger) SetLevel(level zapcore.Level) {
 	l.Level = level
 }
+
+// Logger returns the underlying zap.Logger instance
+func (l *ILogger) Logger() *zap.Logger {
+	return l.logger
+}

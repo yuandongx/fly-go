@@ -1,4 +1,3 @@
-// Package routes provides the HTTP routes configuration for the application.
 package routes
 
 import (
@@ -15,32 +14,18 @@ func SetupRoutes(r *gin.Engine, mongoDB *database.MongoDB, logger *log.ILogger) 
 	r.Use(middleware.Recovery(logger))
 	r.Use(middleware.CORS())
 
-	baseHandler := handlers.NewBaseHandler("default", mongoDB)
-	taskHandler := handlers.NewBaseHandler("tasks", mongoDB)
-	stockHandler := handlers.NewBaseHandler("stock", mongoDB)
-	fundHandler := handlers.NewBaseHandler("fund", mongoDB)
-	montitoHandler := handlers.NewBaseHandler("monitor", mongoDB)
-
-	api := r.Group("/api")
+	api := r.Group("/api/v1")
 	{
-		v1 := api.Group("/v1")
-		{
-			v1.GET("/health", baseHandler.Check)
+		// 健康检查
+		api.GET("/health", handlers.HealthCheck)
 
-			v1.GET("/stock", stockHandler.GetStockList)
-
-			v1.GET("/fund", fundHandler.GetFundList)
-
-			// Task routes
-			v1.GET("/task", taskHandler.GetTaskList)
-			v1.POST("/task", taskHandler.PostTask)
-			v1.PUT("/task/:id", taskHandler.UpdateTask)
-			v1.DELETE("/task/:id", taskHandler.DeleteTask)
-
-			// Monitor routes
-			v1.POST("/monitor", montitoHandler.PostMonitor)
-			v1.GET("/monitor", montitoHandler.GetMonitor)
-
+		// 注册所有资源路由
+		resources := []handlers.Resource{
+			handlers.NewStockResource(mongoDB),
+			handlers.NewFundResource(mongoDB),
+			handlers.NewTaskResource(mongoDB),
+			handlers.NewMonitorResource(mongoDB),
 		}
+		handlers.RegisterResources(api, resources, mongoDB, logger.Logger())
 	}
 }
