@@ -40,14 +40,14 @@ func LoadConfig() (*Config, error) {
 		Server:   ServerConfig{Port: 8000, Mode: "release"},
 	}
 	file, ok := os.LookupEnv("FLY_CONFIG")
-	fmt.Println("------>", file)
+	// fmt.Println("------>", file)
 	if !ok {
 		file = "config.yaml"
 	}
 	err := LoadYAML(file, cfg)
 
-	fmt.Println("----cfg-->", cfg)
-	fmt.Println("----err-->", err)
+	// fmt.Println("----cfg-->", cfg)
+	// fmt.Println("----err-->", err)
 	return cfg, err
 }
 

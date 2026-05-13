@@ -7,15 +7,19 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-var Nodes = map[string]string{"sgt_sz": "sz",
+var Nodes = map[string]string{
+	"sgt_sz": "sz",
 	"hgt_sh": "sh",
 	"hs_bjs": "bj",
 	"kcb":    "kc",
-	"cyb":    "cy"}
+	"cyb":    "cy",
+}
 
+// GetStockInfo 获取股票信息
 func GetStockInfo() ([]bson.M, error) {
 	var result []bson.M
-	var msg error
+	var lastErr error
+
 	query := QueryParams{
 		"page":   1,
 		"num":    40,
@@ -25,48 +29,54 @@ func GetStockInfo() ([]bson.M, error) {
 		"node":   "",
 		"_s_r_a": "init",
 	}
-	headers := map[string]string{
-		"Accept":       "*/*",
-		"Content-Type": "application/json",
-		"User-Agent":   "insomnia/9.3.0-beta.6",
-		"Connection":   "keep-alive",
-	}
-	// var rows []models.
-	for nodeKey, nodeValue := range Nodes {
-		count := 0
-		req := NewRequest(SinaStockCountURL+nodeKey, "GET", headers, nil, 10)
 
-		if data, err := req.Get(); err != nil {
-			fmt.Printf("%s 查询数量失败！", nodeValue)
-			msg = err
+	headers := map[string]string{
+		"Accept":     "*/*",
+		"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+		"Connection": "keep-alive",
+	}
+
+	for nodeKey, nodeValue := range Nodes {
+		// 获取总数
+		countURL := SinaStockCountURL + nodeKey
+		req := NewRequest(countURL, "GET", headers, nil, 10)
+		data, err := req.Get()
+		if err != nil {
+			fmt.Printf("%s: Failed to get count\n", nodeValue)
+			lastErr = err
 			continue
-		} else {
-			if total, err := CovertInt(data); err != nil {
-				msg = err
-				continue
-			} else {
-				count = total
-				fmt.Printf("%s 应有 %d 条数据 \n", nodeValue, total)
-			}
 		}
+
+		count, err := CovertInt(data)
+		if err != nil {
+			fmt.Printf("%s: Failed to parse count\n", nodeValue)
+			lastErr = err
+			continue
+		}
+
+		fmt.Printf("%s: Expecting %d records\n", nodeValue, count)
+
+		// 分页获取数据
 		for page := 1; page <= (count/50)+1; page++ {
 			query["page"] = page
 			query["node"] = nodeKey
 			req.SetURL(SinaStockListURL + "?" + query.String())
+
 			rows, err := req.Get()
 			if err != nil {
-				msg = err
+				lastErr = err
 				continue
 			}
+
 			var tmp []bson.M
-			err = json.Unmarshal(rows, &tmp)
-			if err != nil {
-				msg = err
+			if err := json.Unmarshal(rows, &tmp); err != nil {
+				lastErr = err
 				continue
 			}
 			result = append(result, tmp...)
 		}
 	}
-	fmt.Println("Total stocks:", len(result))
-	return result, msg
+
+	fmt.Printf("Total stocks fetched: %d\n", len(result))
+	return result, lastErr
 }

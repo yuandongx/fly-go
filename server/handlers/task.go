@@ -44,7 +44,7 @@ func (r *TaskResource) CustomRoutes() []RouteConfig {
 
 func (r *TaskResource) CreateTask() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var task fly.Runner
+		var task fly.Task
 		if err := c.ShouldBindJSON(&task); err != nil {
 			utils.BadRequest(c, "参数错误")
 			return
@@ -59,7 +59,7 @@ func (r *TaskResource) CreateTask() gin.HandlerFunc {
 
 func (r *TaskResource) UpdateTask() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var task fly.Runner
+		var task fly.Task
 		if err := c.ShouldBindJSON(&task); err != nil {
 			utils.BadRequest(c, "参数错误")
 			return

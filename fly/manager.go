@@ -4,195 +4,213 @@ import (
 	"context"
 	"fly-go/database"
 	log "fly-go/logger"
-	"fmt"
+	"sync"
 	"time"
-
-	"go.mongodb.org/mongo-driver/bson"
-	"go.uber.org/zap"
 )
 
-// 同时可以有MAX_WAIT个等待任务
-const MAX_WAIT = 3
-
+// TaskManager 任务管理器
 type TaskManager struct {
-	TM         map[string]Runner
-	Count      int
-	Names      []string
-	DB         *database.MongoDB
-	Logger     *log.ILogger
-	Collection string
+	tasks      map[string]*Task
+	mu         sync.RWMutex
+	db         *database.MongoDB
+	logger     *log.ILogger
+	collection string
+	running    bool
+	stopCh     chan struct{}
 }
 
+// NewTaskManager 创建任务管理器
 func NewTaskManager(db *database.MongoDB, logger *log.ILogger) *TaskManager {
 	return &TaskManager{
-		Count:      0,
-		DB:         db,
-		Logger:     logger,
-		TM:         make(map[string]Runner),
-		Collection: "tasks",
+		tasks:      make(map[string]*Task),
+		db:         db,
+		logger:     logger,
+		collection: "tasks",
+		stopCh:     make(chan struct{}),
 	}
 }
 
-// AddTask adds a new task to the TaskManager and assigns it a unique ID based on the last task's ID in the TaskManager slice
-func (tm *TaskManager) AddTask(task Runner) {
-	tm.Count += 1
-	key := fmt.Sprintf("id.%s.%s", task.ID, task.Name)
-	tm.TM[key] = task
-	tm.Names = append(tm.Names, task.Name)
+// RegisterTask 注册任务
+func (tm *TaskManager) RegisterTask(task *Task) {
+	tm.mu.Lock()
+	defer tm.mu.Unlock()
+	tm.tasks[task.ID] = task
+	tm.logger.Info("Task registered",
+		log.String("id", task.ID),
+		log.String("name", task.Name),
+		log.String("executor", task.ExecutorName),
+	)
 }
 
-// RemoveTask sets the status of the task to stopped based on the task ID
-// and disables the trigger, but does not remove the task from the TaskManager slice
-func (tm *TaskManager) RemoveTask(taskID string) {
-	delete(tm.TM, taskID)
-	tm.Count = tm.Count - 1
+// UnregisterTask 注销任务
+func (tm *TaskManager) UnregisterTask(taskID string) {
+	tm.mu.Lock()
+	defer tm.mu.Unlock()
+	if task, ok := tm.tasks[taskID]; ok {
+		task.Trigger.Enabled = false
+		delete(tm.tasks, taskID)
+		tm.logger.Info("Task unregistered", log.String("id", taskID))
+	}
 }
 
-// LoadTask 从数据库加载任务信息并创建对应的 Runner 实例添加到 TaskManager 中
-func (tm *TaskManager) LoadTask() error {
+// GetTask 获取任务
+func (tm *TaskManager) GetTask(taskID string) *Task {
+	tm.mu.RLock()
+	defer tm.mu.RUnlock()
+	return tm.tasks[taskID]
+}
 
-	taskInf := taskInfMap()
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+// ListTasks 列出所有任务
+func (tm *TaskManager) ListTasks() []*Task {
+	tm.mu.RLock()
+	defer tm.mu.RUnlock()
+	tasks := make([]*Task, 0, len(tm.tasks))
+	for _, task := range tm.tasks {
+		tasks = append(tasks, task)
+	}
+	return tasks
+}
 
-	// 从数据库查询所有任务记录
-	collection, err := tm.DB.Collection(tm.Collection)
+// LoadFromDB 从数据库加载任务
+func (tm *TaskManager) LoadFromDB() error {
+	tasks, err := LoadTask(tm.db, tm.logger)
 	if err != nil {
-		return fmt.Errorf("failed to get collection: %w", err)
-	}
-	cursor, err := collection.Find(ctx, bson.M{})
-	if err != nil {
-		return fmt.Errorf("failed to query tasks: %w", err)
-	}
-	defer cursor.Close(ctx)
-
-	var tasks []Runner
-	if err := cursor.All(ctx, &tasks); err != nil {
-		return fmt.Errorf("failed to decode tasks: %w", err)
+		return err
 	}
 
-	// 为每个任务创建 Runner 并添加到 TaskManager
-	for _, taskRunner := range tasks {
-		taskID := taskRunner.ID
-		if taskID == "" {
-			tm.Logger.Warn("Skipping task with empty ID", zap.String("Name", taskRunner.Name))
-			continue
-		}
+	tm.mu.Lock()
+	defer tm.mu.Unlock()
 
-		tif, ok := taskInf[taskRunner.Name]
-		if !ok {
-			tm.Logger.Warn("No task implementation found for task", zap.String("Name", taskRunner.Name))
-			continue
+	for _, task := range tasks {
+		if task.executor != nil {
+			tm.tasks[task.ID] = task
+			tm.logger.Info("Task loaded from DB",
+				log.String("id", task.ID),
+				log.String("name", task.Name),
+			)
 		} else {
-			// 添加到任务管理器
-			taskRunner.Task = tif
-			taskRunner.DB = tm.DB
-			taskRunner.Logger = tm.Logger
-			taskRunner.Trigger.Refresh() // 刷新时间状态
-			tm.AddTask(taskRunner)
-			tm.Logger.Info("Task loaded", zap.String("id", taskID), zap.String("name", taskRunner.Name))
+			tm.logger.Warn("No executor found for task",
+				log.String("id", task.ID),
+				log.String("name", task.Name),
+			)
 		}
 	}
 
-	tm.Logger.Info(fmt.Sprintf("Loaded %d tasks from database", tm.Count))
+	tm.logger.Info("Loaded tasks", log.Int("count", len(tm.tasks)))
 	return nil
 }
 
-func (tm *TaskManager) DumpTask() error {
+// InitDefaultTask 初始化默认任务
+func (tm *TaskManager) InitDefaultTask() error {
+	task := CreateDefaultTask()
+	task.db = tm.db
+	task.logger = tm.logger
+	task.Trigger.Refresh()
+	task.Save()
 
-	if tm.Count == 0 {
-		tm.Logger.Info("No tasks to dump")
-		return nil
-	}
-
-	// TODO: 实现将 TaskManager 中的任务信息保存到数据库的逻辑
-	// 需要遍历 tm.TM 并更新每个任务的状态到数据库
-	for _, task := range tm.TM {
-
-		task.Update()
-
-	}
-	tm.Logger.Info(fmt.Sprintf("Dumped %d tasks to database", tm.Count))
+	tm.RegisterTask(task)
 	return nil
 }
 
-// DumpDefaultTask 将 TaskManager 中的默认任务信息保存到数据库
-func (tm *TaskManager) DumpDefaultTask() error {
-	runner := Runner{
-		ID:            "000",
-		Name:          "default_task",
-		Status:        StatusUnknown,
-		Msg:           "This is a default task",
-		Collection:    tm.Collection,
-		InterfaceName: "default_task",
-		Trigger: Trigger{
-			Period:      5,
-			StartTime:   "00:00",
-			EndTime:     "23:59",
-			Weekdays:    []time.Weekday{0, 1, 2, 3, 4, 5, 6},
-			SkipDays:    []string{"2026-01-01", "2026-02-11", "2026-02-12", "2026-02-13", "2026-02-14", "2026-02-15", "2026-02-16", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-21"},
-			Type:        Interval,
-			Enabled:     true,
-			StartAtDate: "2026-01-01",
-			EndAtDate:   "2099-01-01",
-			LastRunTime: time.Time{},
-			RangeTime:   [][]string{{"00:00", "23:59"}},
-		},
-		Task:   nil,
-		DB:     tm.DB,
-		Logger: tm.Logger,
-	}
+// SaveAll 保存所有任务到数据库
+func (tm *TaskManager) SaveAll() {
+	tm.mu.RLock()
+	defer tm.mu.RUnlock()
 
-	runner.Update()
-	return nil
+	for _, task := range tm.tasks {
+		if err := task.Save(); err != nil {
+			tm.logger.Error("Failed to save task",
+				log.String("id", task.ID),
+				log.Error(err.Error()),
+			)
+		}
+	}
 }
 
-func (tm *TaskManager) RunAllTask() {
-	flags := make(map[string]int)
-	for s, r := range tm.TM {
-		i, ok := flags[s]
-		if ok && i > MAX_WAIT {
+// Start 启动任务调度
+func (tm *TaskManager) Start() {
+	tm.running = true
+	tm.logger.Info("Task manager started")
+
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-tm.stopCh:
+			tm.logger.Info("Task manager stopping")
+			tm.SaveAll()
+			tm.running = false
+			return
+		case <-ticker.C:
+			tm.runPendingTasks()
+		}
+	}
+}
+
+// Stop 停止任务调度
+func (tm *TaskManager) Stop() {
+	if tm.running {
+		close(tm.stopCh)
+		tm.logger.Info("Task manager stopped")
+	}
+}
+
+// runPendingTasks 运行待执行的任务
+func (tm *TaskManager) runPendingTasks() {
+	tm.mu.RLock()
+	tasks := tm.tasks
+	tm.mu.RUnlock()
+
+	for _, task := range tasks {
+		if !task.Trigger.CheckAndUpdate() {
 			continue
 		}
-		go func(runner Runner) {
-			flags[s] = flags[s] + 1
-			// Check if the task can run before executing
-			tm.Logger.Info(fmt.Sprintf("Checking task: %s", runner.Name))
-			ok := runner.TimeIsUp()
-			if !ok {
-				tm.Logger.Info(fmt.Sprintf("Task %s is not ready to run", runner.Name))
-				return
-			}
 
-			// Run the task and update its status
-			runner.Status = StatusRunning
-			runner.Msg = "Task is running"
-			runner.Update()
-			result := NewTaskResult()
-			result.StartTime = time.Now()
+		tm.logger.Info("Running task",
+			log.String("id", task.ID),
+			log.String("name", task.Name),
+		)
 
-			// Log the task execution
-			tm.Logger.Info(fmt.Sprintf("Running task: %s", runner.Name))
-			if err := runner.Run(); err != nil {
-				runner.Status = StatusError
-				runner.Msg = err.Error()
-				tm.Logger.Error(fmt.Sprintf("Error running task %s: %s", runner.Name, err.Error()))
-				result.Msg = err.Error()
-				result.Status = StatusError
-			} else {
-				runner.Status = StatusSuccess
-				tm.Logger.Info(fmt.Sprintf("Task %s completed successfully", runner.Name))
-				result.Status = StatusSuccess
-				result.Msg = "Task completed successfully"
-			}
-
-			// Update the task's last runtime and next runtime after execution
-			// Update the task in the database
-			result.EndTime = time.Now()
-			result.SpendTime = result.EndTime.Sub(result.StartTime).Seconds()
-			runner.Results = append(runner.Results, result)
-			runner.Update()
-			flags[s] = flags[s] - 1
-		}(r)
+		go tm.executeTask(task)
 	}
+}
+
+// executeTask 执行单个任务
+func (tm *TaskManager) executeTask(task *Task) {
+	task.UpdateStatus(StatusRunning, "Task is running")
+
+	result := NewTaskResult()
+	result.StartTime = time.Now()
+
+	if task.executor == nil {
+		result.Status = StatusError
+		result.Message = "No executor registered"
+		task.UpdateStatus(StatusError, result.Message)
+		return
+	}
+
+	res, err := task.executor.Execute(context.Background(), task)
+	result = res
+	if err != nil {
+		result.Status = StatusError
+		result.Message = err.Error()
+		tm.logger.Error("Task execution failed",
+			log.String("id", task.ID),
+			log.Error(err.Error()),
+		)
+	} else {
+		result.Status = StatusSuccess
+		result.Message = "Task completed successfully"
+		tm.logger.Info("Task executed successfully",
+			log.String("id", task.ID),
+		)
+	}
+
+	result.EndTime = time.Now()
+	result.SpendTime = result.EndTime.Sub(result.StartTime).Seconds()
+
+	task.AddResult(result)
+	task.LastRunTime = result.StartTime
+	task.UpdateStatus(result.Status, result.Message)
 }

@@ -1,6 +1,3 @@
-// Package fly is the main package for the task scheduling application.
-//
-//	It initializes the application, loads tasks from the database, and manages their execution.
 package fly
 
 import (
@@ -12,61 +9,38 @@ import (
 	"go.uber.org/zap"
 )
 
-type ExampleTask struct{}
-
-func (t *ExampleTask) Run() ([]BM, error) {
-	// 模拟任务执行逻辑
-	fmt.Println("Running ExampleTask...")
-	return nil, nil
-}
-func (t *ExampleTask) Stop() error {
-	// 模拟任务停止逻辑
-	fmt.Println("Stopping ExampleTask...")
-	return nil
-}
-
-func taskInfMap() map[string]TaskInterface {
-	return map[string]TaskInterface{
-		"default_task": &ExampleTask{},
-	}
-}
-
+// Init 初始化任务系统
 func Init() (*TaskManager, error) {
 	logger := log.DefaultLogger()
-	logger.Info("Initializing application...")
+	logger.Info("Initializing fly task system...")
 
+	// 加载配置
 	cfg, err := config.LoadConfig()
 	if err != nil {
-		logger.Error("Failed to load config", zap.String("Error", err.Error()))
 		return nil, fmt.Errorf("failed to load config: %w", err)
 	}
 
-	mongoDB, err := database.NewMongoDB(cfg.Database)
+	// 连接数据库
+	db, err := database.NewMongoDB(cfg.Database)
 	if err != nil {
-		logger.Error("Failed to connect to database", zap.String("Error", err.Error()))
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
-	}
-	defer mongoDB.Close()
-
-	// 注册任务接口实现
-	tm := NewTaskManager(mongoDB, logger)
-	err = tm.DumpDefaultTask()
-	if err != nil {
-		logger.Error("Failed to dump default tasks", zap.String("Error", err.Error()))
-		return nil, fmt.Errorf("failed to dump default tasks: %w", err)
-	}
-	err = tm.LoadTask()
-	if err != nil {
-		logger.Error("Failed to load tasks", zap.String("Error", err.Error()))
-		return nil, fmt.Errorf("failed to load tasks: %w", err)
+		return nil, fmt.Errorf("failed to connect database: %w", err)
 	}
 
-	// e := tm.DumpTask()
-	// if e != nil {
-	// 	logger.Error("Failed to dump tasks", log.Zap("Error", e.Error()))
-	// 	return nil, fmt.Errorf("failed to dump tasks: %w", e)
-	// }
+	// 创建任务管理器
+	tm := NewTaskManager(db, logger)
 
-	logger.Info("Application initialized successfully")
+	// 初始化默认任务
+	if err := tm.InitDefaultTask(); err != nil {
+		logger.Error("Failed to init default task", zap.String("error", err.Error()))
+	}
+
+	// 从数据库加载任务
+	if err := tm.LoadFromDB(); err != nil {
+		logger.Error("Failed to load tasks", zap.String("error", err.Error()))
+	}
+
+	logger.Info("Fly task system initialized",
+		log.Int("executors", len(ListExecutors())),
+	)
 	return tm, nil
 }

@@ -3,6 +3,7 @@ package log
 
 import (
 	"os"
+	"time"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -201,4 +202,34 @@ func (l *ILogger) SetLevel(level zapcore.Level) {
 // Logger returns the underlying zap.Logger instance
 func (l *ILogger) Logger() *zap.Logger {
 	return l.logger
+}
+
+// String creates a zap.String field for logging
+func String(key, val string) zap.Field {
+	return zap.String(key, val)
+}
+
+// Int creates a zap.Int field for logging
+func Int(key string, val int) zap.Field {
+	return zap.Int(key, val)
+}
+
+// Int64 creates a zap.Int64 field for logging
+func Int64(key string, val int64) zap.Field {
+	return zap.Int64(key, val)
+}
+
+// Error creates a zap.String field with "error" key
+func Error(val string) zap.Field {
+	return zap.String("error", val)
+}
+
+// Bool creates a zap.Bool field for logging
+func Bool(key string, val bool) zap.Field {
+	return zap.Bool(key, val)
+}
+
+// Duration creates a zap.Duration field for logging
+func Duration(key string, val time.Duration) zap.Field {
+	return zap.Duration(key, val)
 }

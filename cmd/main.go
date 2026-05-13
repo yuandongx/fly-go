@@ -8,19 +8,55 @@ import (
 	"fmt"
 )
 
-// main function
-
 var mode = flag.String("mode", "server", "Select spider|server to run it.")
 var port = flag.Int("port", 8080, "Set the port when run server.")
 
-// main 是应用程序的入口点，根据命令行参数启动不同的服务模式
-// 支持两种模式：
-//   - "spider": 启动爬虫服务
-//   - "server": 启动服务器服务
-//
-// 默认情况下同时启动爬虫和服务器
-func main() {
+// ModeHandler 处理不同运行模式的接口
+type ModeHandler interface {
+	StartSpider()
+	StartServer(port int)
+}
 
+// DefaultHandler 默认的 ModeHandler 实现
+type DefaultHandler struct{}
+
+func (h *DefaultHandler) StartSpider() {
+	fly.Start()
+}
+
+func (h *DefaultHandler) StartServer(port int) {
+	server.Start(port)
+}
+
+// RunMode 根据模式执行相应的服务
+// mode: 运行模式 ("spider", "server", 或其他)
+// port: 服务器端口号
+// handler: ModeHandler 接口，用于解耦测试
+func RunMode(mode string, port int, handler ModeHandler) {
+	switch mode {
+	case "spider":
+		handler.StartSpider()
+		fmt.Println("Spider is starting...")
+	case "server":
+		fmt.Println("Server is starting...")
+		fmt.Printf("Server is running with port %d ...\n", port)
+		handler.StartServer(port)
+	default:
+		fmt.Println("Only `spider` or `server` can be selected.")
+		handler.StartSpider()
+		fmt.Printf("Server is running with port %d ...\n", port)
+	}
+}
+
+// main 是应用程序的入口点，根据命令行参数启动不同的服务模式
+func main() {
+	printBanner()
+	flag.Parse()
+	handler := &DefaultHandler{}
+	RunMode(*mode, *port, handler)
+}
+
+func printBanner() {
 	println(`
 		________  __    __      __         ______  ________   ______   _______  ________ 
 		|        \|  \  |  \    /  \       /      \|        \ /      \ |       \|        \
@@ -32,26 +68,4 @@ func main() {
 		| $$      | $$     \| $$           \$$    $$  | $$   | $$  | $$| $$  | $$  | $$   
 		\$$       \$$$$$$$$ \$$            \$$$$$$    \$$    \$$   \$$ \$$   \$$   \$$
 	`)
-	flag.Parse()
-	switch *mode {
-	case "spider":
-		{
-			fly.Start()
-			fmt.Println("Spider is starting...")
-		}
-	case "server":
-		{
-
-			fmt.Println("Server is starting...")
-			fmt.Printf("Server is running with port %d ...\n", *port)
-			server.Start(*port)
-		}
-	default:
-		{
-			fmt.Println("Only `spider` or `server` can be selected.")
-			fly.Start()
-			// server.Start(*port)
-			fmt.Printf("Server is running with port %d ...\n", *port)
-		}
-	}
 }

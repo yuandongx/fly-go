@@ -1,18 +1,17 @@
 package fly
 
 import (
-	"time"
+	"fmt"
 )
 
+// Start 启动任务调度器
 func Start() {
 	tm, err := Init()
 	if err != nil {
-		println("Failed to initialize application:", err.Error())
+		fmt.Printf("Failed to initialize: %v\n", err)
 		return
 	}
-	for {
-		tm.RunAllTask()
-		// Sleep for a short duration before checking the tasks again
-		time.Sleep(1 * time.Second)
-	}
+
+	fmt.Println("Starting task scheduler...")
+	tm.Start()
 }
