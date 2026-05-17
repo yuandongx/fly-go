@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"fly-go/database"
-	"fly-go/fly"
+	"fly-go/fly/executor"
 	"fly-go/server/utils"
 
 	"github.com/gin-gonic/gin"
@@ -44,7 +44,7 @@ func (r *TaskResource) CustomRoutes() []RouteConfig {
 
 func (r *TaskResource) CreateTask() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var task fly.Task
+		var task executor.Task
 		if err := c.ShouldBindJSON(&task); err != nil {
 			utils.BadRequest(c, "参数错误")
 			return
@@ -59,7 +59,7 @@ func (r *TaskResource) CreateTask() gin.HandlerFunc {
 
 func (r *TaskResource) UpdateTask() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var task fly.Task
+		var task executor.Task
 		if err := c.ShouldBindJSON(&task); err != nil {
 			utils.BadRequest(c, "参数错误")
 			return

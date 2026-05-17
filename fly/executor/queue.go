@@ -155,6 +155,12 @@ func (tq *TaskQueue) Execute() {
 			continue
 		}
 
+		// 检查 Runner 是否存在
+		if task.Runner == nil {
+			tq.waitCount--
+			continue
+		}
+
 		// 使用 goroutine 并发执行任务
 		go func(idx int, t *Task) {
 			tq.runningCount++
@@ -164,13 +170,13 @@ func (tq *TaskQueue) Execute() {
 			result, err := t.Run()
 			if err != nil {
 				result.Error = err
-				result.Status = "error"
+				result.Status = StatusError
 			}
 
 			// 保存结果并更新状态
 			t.Save(result)
 			tq.finishCount++
-			if result.Status == "error" {
+			if result.Status == StatusError {
 				tq.errorCount++
 			}
 			tq.runningCount--

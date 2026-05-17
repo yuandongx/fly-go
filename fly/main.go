@@ -58,7 +58,7 @@ func Init() (*TaskManager, error) {
 
 	// 6. 注册内置 Executor
 	runners := GetRunners()
-	tm.Queue.Runners = runners
+	tm.SetRunners(runners)
 	logger.Info("Fly task system initialized",
 		log.Int("runners", len(runners)),
 		log.Int("tasks", tm.Queue.WaitCount()),
@@ -66,7 +66,7 @@ func Init() (*TaskManager, error) {
 	return tm, nil
 }
 
-func main() {
+func Start() {
 	tm, err := Init()
 	if err == nil {
 		tm.Start()

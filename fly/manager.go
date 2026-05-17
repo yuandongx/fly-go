@@ -21,6 +21,11 @@ func NewTaskManager(db *database.MongoDB, logger *log.ILogger) *TaskManager {
 	}
 }
 
+// set taskManager 的 Queue 属性runner
+func (tm *TaskManager) SetRunners(runners map[string]executor.Runner) {
+	tm.Queue.Runners = runners
+}
+
 // InitDefaultTask 初始化默认任务
 func (tm *TaskManager) InitDefaultTask() error {
 	// TODO: 从配置文件或代码中加载默认任务
