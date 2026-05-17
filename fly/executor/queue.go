@@ -3,6 +3,8 @@ package executor
 import (
 	"context"
 	"fly-go/database"
+	log "fly-go/logger"
+	"fmt"
 	"time"
 )
 
@@ -12,6 +14,7 @@ type TaskQueue struct {
 	Tasks        map[int]*Task     // 任务队列，key为加入的顺序
 	Runners      map[string]Runner // 已注册的runner
 	DB           *database.MongoDB
+	Logger       *log.ILogger
 	runningCount int
 	waitCount    int
 	finishCount  int
@@ -19,11 +22,12 @@ type TaskQueue struct {
 }
 
 // New 创建一个新的 TaskQueue
-func New(db *database.MongoDB) *TaskQueue {
+func New(db *database.MongoDB, logger *log.ILogger) *TaskQueue {
 	return &TaskQueue{
 		Tasks:        make(map[int]*Task),
 		Runners:      make(map[string]Runner),
 		DB:           db,
+		Logger:       logger,
 		runningCount: 0,
 		waitCount:    0,
 		finishCount:  0,
@@ -86,7 +90,8 @@ func (tq *TaskQueue) loadFromDB() ([]*Task, error) {
 // rowToTask 将数据库行转换为 Task 结构体
 func (tq *TaskQueue) rowToTask(row database.Row) *Task {
 	task := &Task{
-		DB: tq.DB,
+		DB:     tq.DB,
+		Logger: tq.Logger,
 	}
 
 	// 提取字符串字段
@@ -150,7 +155,15 @@ func (tq *TaskQueue) ErrorCount() int {
 // Start 启动任务队列，遍历所有任务并执行符合条件的任务
 func (tq *TaskQueue) Execute() {
 	for i, task := range tq.Tasks {
+		// 检查 Runner 是否存在，如不存在则从 Runners 映射中查找
+		if task.Runner == nil {
+			if r, ok := tq.Runners[task.RunnerName]; ok {
+				task.Runner = r
+			}
+		}
+
 		// 检查任务是否可以执行
+		task.Logger.Info(fmt.Sprintf("检查任务[%s]是否可以执行", task.Name))
 		if !task.CanRun() {
 			continue
 		}
@@ -160,6 +173,8 @@ func (tq *TaskQueue) Execute() {
 			tq.waitCount--
 			continue
 		}
+
+		task.Logger.Info(fmt.Sprintf("任务 [%s] 准备执行, Runner=%v, DB=%v", task.Name, task.Runner != nil, task.DB != nil))
 
 		// 使用 goroutine 并发执行任务
 		go func(idx int, t *Task) {

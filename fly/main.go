@@ -51,18 +51,18 @@ func Init() (*TaskManager, error) {
 		logger.Warn("Failed to init default task", zap.String("error", err.Error()))
 	}
 
-	// 5. 从数据库加载任务（失败不影响主流程）
-	if err := tm.LoadFromDB(); err != nil {
-		logger.Warn("Failed to load tasks", zap.String("error", err.Error()))
-	}
-
-	// 6. 注册内置 Executor
+	// 5. 注册内置 Executor
 	runners := GetRunners()
 	tm.SetRunners(runners)
 	logger.Info("Fly task system initialized",
 		log.Int("runners", len(runners)),
 		log.Int("tasks", tm.Queue.WaitCount()),
 	)
+
+	// 6. 从数据库加载任务（失败不影响主流程）
+	if err := tm.LoadFromDB(); err != nil {
+		logger.Warn("Failed to load tasks", zap.String("error", err.Error()))
+	}
 	return tm, nil
 }
 

@@ -17,7 +17,7 @@ func NewTaskManager(db *database.MongoDB, logger *log.ILogger) *TaskManager {
 	return &TaskManager{
 		DB:     db,
 		Logger: logger,
-		Queue:  executor.New(db),
+		Queue:  executor.New(db, logger),
 	}
 }
 

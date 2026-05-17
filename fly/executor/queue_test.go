@@ -334,7 +334,7 @@ func TestTaskCanRun(t *testing.T) {
 			Name: "test-task",
 			Params: TaskParam{
 				Type:     TriggerInterval,
-				interval: 10 * time.Minute,
+				Interval: 10 * time.Minute,
 			},
 			LastEndTime: time.Now().Add(-5 * time.Minute), // 只过了5分钟
 		}
@@ -348,7 +348,7 @@ func TestTaskCanRun(t *testing.T) {
 			Name: "test-task",
 			Params: TaskParam{
 				Type:     TriggerInterval,
-				interval: 1 * time.Second, // 1秒间隔用于测试
+				Interval: 1 * time.Second, // 1秒间隔用于测试
 			},
 			LastEndTime: time.Now().Add(-2 * time.Second), // 过了2秒
 		}
@@ -472,7 +472,7 @@ func (e *MockError) Error() string {
 
 func TestTaskQueueNew(t *testing.T) {
 	t.Run("创建TaskQueue初始化所有字段", func(t *testing.T) {
-		tq := New(nil)
+		tq := New(nil, nil)
 
 		if tq == nil {
 			t.Fatal("New() should not return nil")
@@ -500,7 +500,7 @@ func TestTaskQueueNew(t *testing.T) {
 
 func TestTaskQueueRegister(t *testing.T) {
 	t.Run("注册Runner", func(t *testing.T) {
-		tq := New(nil)
+		tq := New(nil, nil)
 
 		runner := &MockRunner{
 			name: "test-runner",
@@ -520,7 +520,7 @@ func TestTaskQueueRegister(t *testing.T) {
 	})
 
 	t.Run("重复注册覆盖", func(t *testing.T) {
-		tq := New(nil)
+		tq := New(nil, nil)
 
 		runner1 := &MockRunner{
 			name: "test-runner",

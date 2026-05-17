@@ -47,7 +47,11 @@ func (tp *TaskParam) Init(params map[string]any) {
 		tp.Type = v
 	}
 	if v, ok := params["interval"].(int); ok {
-		tp.interval = time.Duration(v) * time.Second
+		tp.Interval = time.Duration(v) * time.Second
+	} else if v, ok := params["interval"].(int32); ok {
+		tp.Interval = time.Duration(v) * time.Second
+	} else if v, ok := params["interval"].(float64); ok {
+		tp.Interval = time.Duration(v) * time.Second
 	}
 	// 开始日期，解析为 time.Time
 	if v, ok := params["start_date"].(string); ok {

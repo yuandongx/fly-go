@@ -1,6 +1,7 @@
 package executor
 
 import (
+	"context"
 	"fly-go/database"
 	log "fly-go/logger"
 	"time"
@@ -24,7 +25,7 @@ type TaskParam struct {
 	// 任务类型，如固定时间间隔
 	Type string `json:"type"`
 	// 间隔时间, 如10分钟
-	interval time.Duration
+	Interval time.Duration
 	// 开始日期
 	StartDate time.Time
 	// 结束日期
@@ -72,6 +73,26 @@ func (t *Task) Save(result TaskResult) {
 	t.LastRunTime = time.Now()
 	t.LastStatus = result.Status
 	t.LastMessage = result.Message
+
+	// 同步更新到数据库
+	if t.DB != nil {
+		t.updateDB()
+	}
+}
+
+// updateDB 将任务状态同步到数据库
+func (t *Task) updateDB() {
+	ctx := context.Background()
+	filter := map[string]any{"name": t.Name}
+	update := map[string]any{
+		"$set": map[string]any{
+			"last_end_time": t.LastEndTime.Format(time.RFC3339),
+			"last_run_time": t.LastRunTime.Format(time.RFC3339),
+			"last_status":   t.LastStatus,
+			"last_message":  t.LastMessage,
+		},
+	}
+	t.DB.UpdateOne(ctx, TASK_COLLECTION, filter, update)
 }
 
 // CanRun 检查当前时间是否可以执行任务
@@ -90,11 +111,12 @@ func (t *Task) CanRun() bool {
 	}
 
 	// 2. 固定间隔任务 (interval)
-	if t.Params.Type == "interval" && t.Params.interval > 0 {
+	if t.Params.Type == "interval" && t.Params.Interval > 0 {
 		// 已执行过，需要检查间隔
 		if !t.LastEndTime.IsZero() {
-			// 间隔是否足够
-			if now.Sub(t.LastEndTime) < t.Params.interval {
+			elapsed := now.Sub(t.LastEndTime)
+			// 间隔是否足够（elapsed 必须大于等于 interval）
+			if elapsed < t.Params.Interval {
 				return false
 			}
 			// 上次执行时间是否在有效时间范围内
