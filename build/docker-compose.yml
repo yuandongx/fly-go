@@ -2,53 +2,21 @@ version: '3.8'
 
 services:
 
-  app:
-    image: nginx:latest
-    volumes:
-      - /home/develop/data/web/nginx.conf:/etc/nginx/nginx.conf:ro
-      - /home/develop/data/web/dist:/app/dist:ro
-      - /home/develop/data/app:/app/bin:rw
-    command: [nginx-debug, '-g', 'daemon off;']
-    ports:
-      - "80:80"
-      - "8080:8080"
-    networks:
-      - app-network
-
-  # server:
-  #   image: alpine:3.23
-  #   command: ["/app/fly-go", "--mode", "server"]
-  #   depends_on:
-  #     - mongo
-  #   environment:
-  #     - TZ=Asia/Shanghai
-  #     - FLY_CONFIG=/app/config.yaml
+  # app:
+  #   image: nginx:latest
   #   volumes:
-  #     - /home/develop/data/worker:/app:rw
+  #     - /home/develop/data/web/nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - /home/develop/data/web/dist:/app/dist:ro
+  #     - /home/develop/data/app:/app/bin:rw
+  #   command: [nginx-debug, '-g', 'daemon off;']
   #   ports:
-  #     - "8000:8000"
-  #   networks:
-  #     - app-network
- 
-
-  # worker:
-  #   image: golang:1.26-alpine3.23
-  #   command: ["sh", "-c", "tail -f /dev/null"]
-  #   depends_on:
-  #     - mongo
-  #   environment:
-  #     - TZ=Asia/Shanghai
-  #     - GOPROXY=https://goproxy.cn,direct
-  #     - GO111MODULE=on
-  #   volumes:
-  #     - /home/develop/data/worker:/app:rw
-  #     - /home/develop/workspace/fly-go/:/go/src/fly-go:rw
+  #     - "80:80"
+  #     - "8080:8080"
   #   networks:
   #     - app-network
 
   mongo:
     image: mongo
-    restart: always
     ports:
       - 8717:27017
     volumes:
