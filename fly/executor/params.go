@@ -5,6 +5,25 @@ import (
 	"time"
 )
 
+type TaskParam struct {
+	// 一天中的开始时间, 如上午09:00
+	StartTime int
+	// 结束时间, 如下午18:00
+	EndTime int
+	// 跳过的日期, 如2025-06-01
+	SkipDates []int
+	// 跳过星期, 如1,2,3,4,5
+	SkipWeekdays []int
+	// 任务类型，如固定时间间隔
+	Type string `json:"type"`
+	// 间隔时间, 如10分钟
+	Interval time.Duration
+	// 开始日期
+	StartDate time.Time
+	// 结束日期
+	EndDate time.Time
+}
+
 func toInt(s string) int {
 	// 将 "09:00" 转换为秒数 (32400)
 	hour, _ := strconv.Atoi(s[:2])
@@ -29,6 +48,15 @@ func parseDate(s string) (time.Time, error) {
 }
 
 // 参数初始化
+// 将 params 里的参数转换为 TaskParam
+// start_time 转换为 int， 示例："09:00" 转换为 32400
+// end_time 转换为 int，示例："18:00" 转换为 64800
+// skip_dates 转换为 int 时间戳， 示例：["2026-01-01"] 转换为 [1777846400]
+// skip_weekdays 转换为 int 列表， 示例：[1,2,3,4,5]
+// type 转换为字符串，示例："fixed"
+// interval 转换为 time.Duration，示例：10 转换为 10 * time.Second
+// start_date 转换为 time.Time，示例："2026-01-01" 转换为 time.Date(2026, 1, 1, 0, 0, 0, 0, time.Local)
+// end_date 转换为 time.Time，示例："2026-01-01" 转换为 time.Date(2026, 1, 1, 0, 0, 0, 0, time.Local)
 func (tp *TaskParam) Init(params map[string]any) {
 	// 将 params 里的参数转换为 TaskParam
 	if v, ok := params["start_time"].(string); ok {
@@ -88,10 +116,10 @@ func toInts(in []any) []int {
 
 // Active 检查当前时间是否在任务参数定义的有效范围内
 // 按以下顺序检查：
-//   1. 日期范围：当前日期是否在 StartDate ~ EndDate 内
-//   2. 跳过日期：当前日期是否在 SkipDates 中
-//   3. 星期范围：当前星期是否在 SkipWeekdays 中（SkipWeekdays 为要跳过的星期）
-//   4. 时间范围：当前时间是否在 StartTime ~ EndTime 内
+//  1. 日期范围：当前日期是否在 StartDate ~ EndDate 内
+//  2. 跳过日期：当前日期是否在 SkipDates 中
+//  3. 星期范围：当前星期是否在 SkipWeekdays 中（SkipWeekdays 为要跳过的星期）
+//  4. 时间范围：当前时间是否在 StartTime ~ EndTime 内
 func (tp *TaskParam) Active() bool {
 	now := time.Now()
 

@@ -13,25 +13,6 @@ type Runner interface {
 	Stop() error
 }
 
-type TaskParam struct {
-	// 一天中的开始时间, 如上午09:00
-	StartTime int
-	// 结束时间, 如下午18:00
-	EndTime int
-	// 跳过的日期, 如2025-06-01
-	SkipDates []int
-	// 跳过星期, 如1,2,3,4,5
-	SkipWeekdays []int
-	// 任务类型，如固定时间间隔
-	Type string `json:"type"`
-	// 间隔时间, 如10分钟
-	Interval time.Duration
-	// 开始日期
-	StartDate time.Time
-	// 结束日期
-	EndDate time.Time
-}
-
 type TaskResult struct {
 	Status    string        `json:"status"`
 	Data      any           `json:"data"`
