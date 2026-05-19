@@ -1,26 +1,24 @@
 version: '3.8'
 
 services:
-
-  # app:
-  #   image: nginx:latest
-  #   volumes:
-  #     - /home/develop/data/web/nginx.conf:/etc/nginx/nginx.conf:ro
-  #     - /home/develop/data/web/dist:/app/dist:ro
-  #     - /home/develop/data/app:/app/bin:rw
-  #   command: [nginx-debug, '-g', 'daemon off;']
-  #   ports:
-  #     - "80:80"
-  #     - "8080:8080"
-  #   networks:
-  #     - app-network
-
+  appdev:
+    image: go:latest
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: go mod tidy && mkdir -p /app/mongodb && tail -f /dev/null
+    ports:
+      - 8000:8000
+    networks:
+      - app-network
+    depends_on:
+      - mongo
   mongo:
     image: mongo
     ports:
-      - 8717:27017
+      - 27017:27017
     volumes:
-      - /home/develop/data/mongodb/db:/data/db
+      - /workspaces/db:/data/db
     networks:
       - app-network
     environment:
