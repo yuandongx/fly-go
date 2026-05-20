@@ -1,7 +1,7 @@
 services:
   devcontainer:
     image: golang:1.26.3
-    working_dir: /app/fly-go
+    working_dir: /app
     volumes:
       - ..:/app
     command: sleep infinity
