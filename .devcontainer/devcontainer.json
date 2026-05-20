@@ -1,15 +1,23 @@
-// For format details, see https://aka.ms/devcontainer.json.
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/go .
 {
-	"name": "Go & mongo",
+	"name": "Go",
+	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	"dockerComposeFile": "docker-compose.yml",
-	"service": "appdev",
-	"workspaceFolder": "/app/${localWorkspaceFolderBasename}",
-	"runServices": ["appdev", "mongo"],
-	"shutdownAction": "stopCompose",
-	"forwardPorts": [8000, 27017],
-	"postCreateCommand": "if command -v go >/dev/null 2>&1; then go build ./...; else echo 'go not found, skipping build'; fi",
-	"postStartCommand": "go mod download",
+    "service": "devcontainer",
+    "workspaceFolder": "/app/fly-go",
 	"features": {
-		"ghcr.io/devcontainers-extra/features/mongosh-homebrew:1": {}
+		"ghcr.io/cirolosapio/devcontainers-features/alpine-git:0": {},
+		"ghcr.io/cirolosapio/devcontainers-features/alpine-go:0": {}
 	}
+	// Features to add to the dev container. More info: https://containers.dev/features.
+	// "features": {},
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+	// Use 'postCreateCommand' to run commands after the container is created.
+	// "postCreateCommand": "go version",
+	// Configure tool-specific properties.
+	// "customizations": {},
+	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	// "remoteUser": "root"
 }
