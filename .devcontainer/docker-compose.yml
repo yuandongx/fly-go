@@ -6,7 +6,7 @@ services:
     working_dir: /app
     volumes:
       - .:/app
-    command: go mod tidy &&  top
+    command: go mod tidy &&  top -c
     ports:
       - 8000:8000
     networks:
