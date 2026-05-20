@@ -36,10 +36,3 @@ services:
       ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
       ME_CONFIG_BASICAUTH: "false"
 
-
-networks:
-  app-network:
-    driver: overlay
-    attachable: true
-    name: app_network
-    # external: true
