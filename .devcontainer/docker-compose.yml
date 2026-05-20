@@ -2,11 +2,11 @@ version: '3.8'
 
 services:
   appdev:
-    image: go:latest
+    image: golang:latest
     working_dir: /app
     volumes:
       - .:/app
-    command: go mod tidy && mkdir -p /app/mongodb && tail -f /dev/null
+    command: go mod tidy &&  top
     ports:
       - 8000:8000
     networks:
@@ -17,8 +17,6 @@ services:
     image: mongo
     ports:
       - 27017:27017
-    volumes:
-      - /workspaces/db:/data/db
     networks:
       - app-network
     environment:

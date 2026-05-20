@@ -1,14 +1,14 @@
 // For format details, see https://aka.ms/devcontainer.json.
 {
 	"name": "Go & mongo",
-	"dockerComposeFile": "../build/docker-compose.yml",
+	"dockerComposeFile": "docker-compose.yml",
 	"service": "appdev",
-	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+	"workspaceFolder": "/app/${localWorkspaceFolderBasename}",
 	"runServices": ["appdev", "mongo"],
 	"shutdownAction": "stopCompose",
-	"forwardPorts": [8000, 27017, 8081],
+	"forwardPorts": [8000, 27017],
 	"postCreateCommand": "if command -v go >/dev/null 2>&1; then go build ./...; else echo 'go not found, skipping build'; fi",
-	"postStartCommand": "go mod download;mkdir -p /workspaces/db && chown vscode:vscode /workspaces/db",
+	"postStartCommand": "go mod download",
 	"features": {
 		"ghcr.io/devcontainers-extra/features/mongosh-homebrew:1": {}
 	}
