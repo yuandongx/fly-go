@@ -5,11 +5,7 @@
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	"dockerComposeFile": "docker-compose.yml",
     "service": "devcontainer",
-    "workspaceFolder": "/app/fly-go",
-	"features": {
-		"ghcr.io/cirolosapio/devcontainers-features/alpine-git:0": {},
-		"ghcr.io/cirolosapio/devcontainers-features/alpine-go:0": {}
-	}
+    "workspaceFolder": "/app/fly-go"
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
