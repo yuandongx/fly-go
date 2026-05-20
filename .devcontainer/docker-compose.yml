@@ -3,7 +3,7 @@ services:
     image: golang:1.26.3
     working_dir: /app/fly-go
     volumes:
-      - .:/app
+      - ..:/app
     command: sleep infinity
     ports:
       - 8000:8000
