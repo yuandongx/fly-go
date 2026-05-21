@@ -20,7 +20,7 @@ vendor/
 go.work
 
 # Environment variables
-.env
+.env.*
 
 # Log files
 logs/*.log

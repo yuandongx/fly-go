@@ -5,12 +5,10 @@ go 1.25
 require (
 	github.com/gin-gonic/gin v1.9.1
 	go.mongodb.org/mongo-driver v1.13.1
+	go.uber.org/zap v1.27.1
 )
 
-require (
-	go.uber.org/multierr v1.10.0 // indirect
-	go.uber.org/zap v1.27.1 // indirect
-)
+require go.uber.org/multierr v1.10.0 // indirect
 
 require (
 	github.com/bytedance/sonic v1.9.1 // indirect
