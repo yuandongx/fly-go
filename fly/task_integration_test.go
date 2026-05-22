@@ -61,8 +61,8 @@ func TestDB_SaveAndLoadTask(t *testing.T) {
 	
 	// 1. 创建并保存任务到数据库
 	taskData := map[string]interface{}{
-		"name":         "db-test-task",
-		"runner_name":  "db-test-runner",
+		"name":         "DemoRunner1",
+		"runner_name":  "DemoRunner1",
 		"last_status":  executor.StatusIdle,
 		"last_message":  "",
 		"params": map[string]interface{}{
@@ -70,6 +70,10 @@ func TestDB_SaveAndLoadTask(t *testing.T) {
 			"interval":  5,
 			"start_time": "00:00",
 			"end_time":   "23:59",
+			"skip_dates": []string{"2026-01-01"},
+			"skip_weekdays": []int{1,2,3,4},
+			"start_date": "2023-01-01",
+			"end_date": "2023-12-31",
 		},
 		"last_run_time": "",
 		"last_end_time": "",
@@ -97,11 +101,11 @@ func TestDB_SaveAndLoadTask(t *testing.T) {
 	if task == nil {
 		t.Fatal("Task should not be nil")
 	}
-	if task.Name != "db-test-task" {
-		t.Errorf("Expected task name 'db-test-task', got '%s'", task.Name)
+	if task.Name != "DemoRunner1" {
+		t.Errorf("Expected task name 'DemoRunner1', got '%s'", task.Name)
 	}
-	if task.RunnerName != "db-test-runner" {
-		t.Errorf("Expected runner name 'db-test-runner', got '%s'", task.RunnerName)
+	if task.RunnerName != "DemoRunner1" {
+		t.Errorf("Expected runner name 'DemoRunner1', got '%s'", task.RunnerName)
 	}
 }
 

@@ -16,7 +16,7 @@ import (
 // getTestDB 获取测试数据库连接
 func getTestDB(t *testing.T) *database.MongoDB {
 	cfg := config.DatabaseConfig{
-		MongoHost:     "localhost",
+		MongoHost:     "120.48.130.105",
 		MongoPort:     8717,
 		MongoUsername: "root",
 		MongoPassword: "example",
@@ -211,7 +211,7 @@ func TestInit_WithRealData(t *testing.T) {
 		"last_message": "",
 		"params": map[string]interface{}{
 			"type":       "interval",
-			"interval":  60,
+			"interval":   60,
 			"start_time": "09:00",
 			"end_time":   "18:00",
 		},
@@ -251,22 +251,22 @@ func TestInit_MultipleTasks(t *testing.T) {
 	// 插入多个测试任务
 	tasks := []map[string]interface{}{
 		{
-			"name":         "task-1",
-			"runner_name":  "runner-a",
-			"last_status":  executor.StatusIdle,
-			"params":       map[string]interface{}{"type": "interval", "interval": 60},
+			"name":        "task-1",
+			"runner_name": "runner-a",
+			"last_status": executor.StatusIdle,
+			"params":      map[string]interface{}{"type": "interval", "interval": 60},
 		},
 		{
-			"name":         "task-2",
-			"runner_name":  "runner-b",
-			"last_status":  executor.StatusSuccess,
-			"params":       map[string]interface{}{"type": "once"},
+			"name":        "task-2",
+			"runner_name": "runner-b",
+			"last_status": executor.StatusSuccess,
+			"params":      map[string]interface{}{"type": "once"},
 		},
 		{
-			"name":         "task-3",
-			"runner_name":  "runner-a",
-			"last_status":  executor.StatusError,
-			"params":       map[string]interface{}{},
+			"name":        "task-3",
+			"runner_name": "runner-a",
+			"last_status": executor.StatusError,
+			"params":      map[string]interface{}{},
 		},
 	}
 
@@ -329,12 +329,12 @@ func TestTaskExecution(t *testing.T) {
 
 	// 插入一个待执行的任务
 	testTask := map[string]interface{}{
-		"name":         "exec-task",
-		"runner_name":  "exec-runner",
-		"last_status":  executor.StatusIdle,
+		"name":        "exec-task",
+		"runner_name": "exec-runner",
+		"last_status": executor.StatusIdle,
 		"params": map[string]interface{}{
-			"type":       "interval",
-			"interval":  1, // 1秒间隔
+			"type":     "interval",
+			"interval": 1, // 1秒间隔
 		},
 	}
 	insertTestTask(t, db, testTask)
@@ -389,8 +389,8 @@ func TestTaskResultLimit(t *testing.T) {
 	// 保存 15 条结果（应该只保留最后 10 条）
 	for i := 0; i < 15; i++ {
 		task.Save(executor.TaskResult{
-			Status:  executor.StatusSuccess,
-			Message: "result",
+			Status:    executor.StatusSuccess,
+			Message:   "result",
 			StartTime: time.Now(),
 			EndTime:   time.Now(),
 		})

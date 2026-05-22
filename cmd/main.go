@@ -43,7 +43,7 @@ func RunMode(mode string, port int, handler ModeHandler) {
 		handler.StartServer(port)
 	default:
 		fmt.Println("Only `spider` or `server` can be selected.")
-		handler.StartSpider()
+		handler.StartServer(port)
 		fmt.Printf("Server is running with port %d ...\n", port)
 	}
 }
