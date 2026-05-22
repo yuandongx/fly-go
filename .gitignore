@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+*_debug_*
 bin/
 dist/
 
